@@ -1,0 +1,51 @@
+{
+    "name": "jobmetric/laravel-language",
+    "description": "It is a standard package for managing different system languages in Laravel.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "jobmetric",
+        "package",
+        "language"
+    ],
+    "homepage": "https://doc.jobmetric.net/package/laravel-language",
+    "authors": [
+        {
+            "name": "Majid Mohammadian",
+            "email": "majeedmohammadian@gmail.com",
+            "homepage": "https://www.linkedin.com/in/majidmohammadian/",
+            "role": "Full Stack Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.0.1",
+        "laravel/framework": ">=9.19",
+        "jobmetric/laravel-package-core": "^1.2"
+    },
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "JobMetric\\Language\\": "src/",
+            "JobMetric\\Language\\Factories\\": "database/factories/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "JobMetric\\Language\\LanguageServiceProvider"
+            ],
+            "aliases": {
+                "Language": "JobMetric\\Language\\Facades\\Language"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "support": {
+        "issues": "https://github.com/jobmetric/laravel-language/issues",
+        "forum": "https://twitter.com/jobmetric",
+        "source": "https://github.com/jobmetric/laravel-language"
+    }
+}
