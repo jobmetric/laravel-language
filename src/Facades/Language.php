@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @see \JobMetric\Language\Language
  *
+ * @method static \Spatie\QueryBuilder\QueryBuilder query(array $filter = [])
+ * @method static \Illuminate\Pagination\LengthAwarePaginator paginate(array $filter = [], int $page_limit = 15)
+ * @method static \Illuminate\Database\Eloquent\Collection all(array $filter = [])
  * @method static array store(array $data)
  * @method static array update(int $language_id, array $data)
  * @method static array delete(int $language_id)

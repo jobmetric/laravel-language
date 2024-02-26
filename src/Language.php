@@ -3,6 +3,8 @@
 namespace JobMetric\Language;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use JobMetric\Language\Events\Language\LanguageDeleteEvent;
@@ -11,6 +13,7 @@ use JobMetric\Language\Events\Language\LanguageUpdateEvent;
 use JobMetric\Language\Http\Requests\StoreLanguageRequest;
 use JobMetric\Language\Http\Requests\UpdateLanguageRequest;
 use JobMetric\Language\Models\Language as LanguageModel;
+use Spatie\QueryBuilder\QueryBuilder;
 use Throwable;
 
 class Language
@@ -30,6 +33,47 @@ class Language
     public function __construct(Application $app)
     {
         $this->app = $app;
+    }
+
+    /**
+     * Get the specified language.
+     *
+     * @param array $filter
+     * @return QueryBuilder
+     */
+    public function query(array $filter = []): QueryBuilder
+    {
+        $fields = ['id', 'name', 'flag', 'locale', 'direction', 'status'];
+
+        return QueryBuilder::for(LanguageModel::class)
+            ->allowedFields($fields)
+            ->allowedSorts($fields)
+            ->allowedFilters($fields)
+            ->defaultSort('-id')
+            ->where($filter);
+    }
+
+    /**
+     * Paginate the specified language.
+     *
+     * @param array $filter
+     * @param int $page_limit
+     * @return LengthAwarePaginator
+     */
+    public function paginate(array $filter = [], int $page_limit = 15): LengthAwarePaginator
+    {
+        return $this->query($filter)->paginate($page_limit);
+    }
+
+    /**
+     * Get all languages.
+     *
+     * @param array $filter
+     * @return Collection
+     */
+    public function all(array $filter = []): Collection
+    {
+        return $this->query($filter)->get();
     }
 
     /**
