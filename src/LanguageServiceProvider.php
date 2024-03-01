@@ -34,12 +34,14 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
      */
     public function afterBootPackage(): void
     {
-        $languages = LanguageFacade::all(['status' => true]);
-        View::composer('*', function ($view) use ($languages) {
-            $view->with('languages', $languages);
+        if (checkDatabaseConnection()) {
+            $languages = LanguageFacade::all(['status' => true]);
+            View::composer('*', function ($view) use ($languages) {
+                $view->with('languages', $languages);
 
-            $defaultLanguage = $languages->where('locale', $this->app->getLocale())->first();
-            $view->with('languageInfo', $defaultLanguage);
-        });
+                $defaultLanguage = $languages->where('locale', $this->app->getLocale())->first();
+                $view->with('languageInfo', $defaultLanguage);
+            });
+        }
     }
 }
