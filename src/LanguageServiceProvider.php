@@ -34,7 +34,7 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
      */
     public function afterBootPackage(): void
     {
-        if (checkDatabaseConnection()) {
+        if (checkDatabaseConnection() && !$this->app->runningInConsole() && !$this->app->runningUnitTests()) {
             $languages = LanguageFacade::all(['status' => true]);
             View::composer('*', function ($view) use ($languages) {
                 $view->with('languages', $languages);
