@@ -12,6 +12,7 @@ use JobMetric\Language\Events\Language\LanguageStoreEvent;
 use JobMetric\Language\Events\Language\LanguageUpdateEvent;
 use JobMetric\Language\Http\Requests\StoreLanguageRequest;
 use JobMetric\Language\Http\Requests\UpdateLanguageRequest;
+use JobMetric\Language\Http\Resources\LanguageResource;
 use JobMetric\Language\Models\Language as LanguageModel;
 use Spatie\QueryBuilder\QueryBuilder;
 use Throwable;
@@ -92,7 +93,8 @@ class Language
             return [
                 'ok' => false,
                 'message' => trans('language::base.validation.errors'),
-                'errors' => $errors
+                'errors' => $errors,
+                'status' => 422
             ];
         }
 
@@ -110,7 +112,8 @@ class Language
             return [
                 'ok' => true,
                 'message' => trans('language::base.messages.created'),
-                'data' => $language
+                'data' => LanguageResource::make($language),
+                'status' => 201
             ];
         });
     }
@@ -131,7 +134,8 @@ class Language
             return [
                 'ok' => false,
                 'message' => trans('language::base.validation.errors'),
-                'errors' => $errors
+                'errors' => $errors,
+                'status' => 422
             ];
         }
 
@@ -147,7 +151,8 @@ class Language
                     'message' => trans('language::base.validation.errors'),
                     'errors' => [
                         trans('language::base.validation.language_not_found')
-                    ]
+                    ],
+                    'status' => 404
                 ];
             }
 
@@ -178,7 +183,8 @@ class Language
             return [
                 'ok' => true,
                 'message' => trans('language::base.messages.updated'),
-                'data' => $language
+                'data' => LanguageResource::make($language),
+                'status' => 200
             ];
         });
     }
@@ -203,9 +209,12 @@ class Language
                     'message' => trans('language::base.validation.errors'),
                     'errors' => [
                         trans('language::base.validation.language_not_found')
-                    ]
+                    ],
+                    'status' => 404
                 ];
             }
+
+            $data = LanguageResource::make($language);
 
             event(new LanguageDeleteEvent($language));
 
@@ -213,7 +222,9 @@ class Language
 
             return [
                 'ok' => true,
-                'message' => trans('language::base.messages.deleted')
+                'message' => trans('language::base.messages.deleted'),
+                'data' => $data,
+                'status' => 200
             ];
         });
     }
