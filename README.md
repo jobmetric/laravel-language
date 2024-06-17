@@ -136,11 +136,11 @@ $request->validate([
 
 This package contains several events for which you can write a listener as follows
 
-| Event                 | Description                                         |
-|-----------------------|-----------------------------------------------------|
-| `LanguageStoredEvent` | This event is called after storing the language.    |
-| `LanguageUpdateEvent` | This event is called after updating the language.   |
-| `LanguageForgetEvent` | This event is called after forgetting the language. |
+| Event                 | Description                                       |
+|-----------------------|---------------------------------------------------|
+| `LanguageStoredEvent` | This event is called after storing the language.  |
+| `LanguageUpdateEvent` | This event is called after updating the language. |
+| `LanguageDeleteEvent` | This event is called after delete the language.   |
 
 
 ## Contributing
