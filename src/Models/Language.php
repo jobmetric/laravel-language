@@ -5,6 +5,7 @@ namespace JobMetric\Language\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use JobMetric\PackageCore\Models\HasBooleanStatus;
 
 /**
  * JobMetric\Language\Models\Language
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Language extends Model
 {
-    use HasFactory;
+    use HasFactory, HasBooleanStatus;
 
     protected $fillable = [
         'name',
