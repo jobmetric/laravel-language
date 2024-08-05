@@ -3,7 +3,7 @@
 namespace JobMetric\Language;
 
 use Illuminate\Support\Facades\View;
-use JobMetric\Language\Facades\Language as LanguageFacade;
+use JobMetric\Language\Models\Language as LanguageModels;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\RegisterClassTypeNotFoundException;
 use JobMetric\PackageCore\PackageCore;
@@ -35,7 +35,10 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
     public function afterBootPackage(): void
     {
         if (checkDatabaseConnection() && !$this->app->runningInConsole() && !$this->app->runningUnitTests()) {
-            $languages = LanguageFacade::all(['status' => true]);
+            $languages = LanguageModels::query()
+                ->where('status', true)
+                ->get();
+
             View::composer('*', function ($view) use ($languages) {
                 $view->with('languages', $languages);
 
