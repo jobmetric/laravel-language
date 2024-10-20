@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use JobMetric\Category\Exceptions\LanguageDataNotExist;
 use JobMetric\Language\Events\Language\LanguageDeleteEvent;
 use JobMetric\Language\Events\Language\LanguageStoreEvent;
 use JobMetric\Language\Events\Language\LanguageUpdateEvent;
@@ -227,5 +228,31 @@ class Language
                 'status' => 200
             ];
         });
+    }
+
+    /**
+     * Add Language Data
+     *
+     * @param string $locale
+     *
+     * @return void
+     * @throws Throwable
+     */
+    public function addLanguageDate(string $locale): void
+    {
+        $languages = require realpath(__DIR__ . '/../data/languages.php');
+
+        if (!array_key_exists($locale, $languages)) {
+            throw new LanguageDataNotExist($locale);
+        }
+
+        $language = new LanguageModel;
+        $language->name = $languages[$locale]['name'];
+        $language->flag = $languages[$locale]['flag'];
+        $language->locale = $languages[$locale]['locale'];
+        $language->direction = $languages[$locale]['direction'];
+        $language->status = true;
+
+        $language->save();
     }
 }

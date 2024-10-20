@@ -25,4 +25,8 @@ return [
         'deleted' => 'The language was deleted successfully.',
     ],
 
+    'exceptions' => [
+        'language_data_not_exist' => 'The language data does not exist in locale (:locale).',
+    ],
+
 ];
