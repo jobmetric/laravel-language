@@ -4,6 +4,7 @@ namespace JobMetric\Language;
 
 use Illuminate\Support\Facades\View;
 use JobMetric\Language\Models\Language as LanguageModels;
+use JobMetric\PackageCore\Exceptions\AssetFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\RegisterClassTypeNotFoundException;
 use JobMetric\PackageCore\PackageCore;
@@ -17,11 +18,14 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
      * @return void
      * @throws MigrationFolderNotFoundException
      * @throws RegisterClassTypeNotFoundException
+     * @throws AssetFolderNotFoundException
      */
     public function configuration(PackageCore $package): void
     {
         $package->name('laravel-language')
             ->hasConfig()
+            ->hasAsset()
+            ->hasRoute()
             ->hasMigration()
             ->hasTranslation()
             ->registerClass('Language', Language::class);
