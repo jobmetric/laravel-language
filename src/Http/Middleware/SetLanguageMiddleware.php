@@ -15,7 +15,7 @@ class SetLanguageMiddleware
      *
      * @param Request $request
      * @param Closure(Request): (Response) $next
-     * 
+     *
      * @return Response
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -23,8 +23,8 @@ class SetLanguageMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (request()->route()->getName() !== 'language.set') {
-            if (request()->header('Accept-Language')) {
-                app()->setLocale(request()->header('Accept-Language'));
+            if (request()->header('Language')) {
+                app()->setLocale(request()->header('Language'));
             } else if (session()->has('language')) {
                 app()->setLocale(session()->get('language'));
             } else {
