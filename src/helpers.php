@@ -44,3 +44,15 @@ if (!function_exists('deleteLanguage')) {
         return Language::delete($language_id);
     }
 }
+
+if (!function_exists('addLanguageScript')) {
+    /**
+     * add language script
+     *
+     * @return void
+     */
+    function addLanguageScript(): void
+    {
+        DomiScript('assets/vendor/language/js/laravel-language.js');
+    }
+}
