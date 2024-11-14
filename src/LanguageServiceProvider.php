@@ -3,6 +3,7 @@
 namespace JobMetric\Language;
 
 use Illuminate\Support\Facades\View;
+use JobMetric\Language\Facades\Language;
 use JobMetric\Language\Models\Language as LanguageModels;
 use JobMetric\PackageCore\Exceptions\AssetFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
@@ -49,6 +50,8 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
                 $defaultLanguage = $languages->where('locale', $this->app->getLocale())->first();
                 $view->with('languageInfo', $defaultLanguage);
             });
+
+            DomiLocalize('languages', json_decode($languages));
         }
     }
 }
