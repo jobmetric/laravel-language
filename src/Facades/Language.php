@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array update(int $language_id, array $data)
  * @method static array delete(int $language_id)
  * @method static void addLanguageDate(string $locale)
+ * @method static array getFlags()
  */
 class Language extends Facade
 {

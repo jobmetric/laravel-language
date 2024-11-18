@@ -255,4 +255,42 @@ class Language
 
         $language->save();
     }
+
+    /**
+     * Get list of flag images with formatted data.
+     *
+     * @return array
+     */
+    public function getFlags(): array
+    {
+        $path = public_path('assets/vendor/language/flags');
+        $files = scandir($path);
+        $flags = [];
+
+        foreach ($files as $file) {
+            if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
+                $nameWithoutExtension = pathinfo($file, PATHINFO_FILENAME);
+                $formattedName = $this->formatName($nameWithoutExtension);
+
+                $flags[] = [
+                    'value' => $file,
+                    'name' => $formattedName,
+                ];
+            }
+        }
+
+        return $flags;
+    }
+
+    /**
+     * Format the filename to replace dashes with spaces and capitalize words.
+     *
+     * @param string $name
+     * @return string
+     */
+    private function formatName(string $name): string
+    {
+        $name = str_replace('-', ' ', $name);
+        return ucwords($name);
+    }
 }
