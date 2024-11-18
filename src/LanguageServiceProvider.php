@@ -8,6 +8,7 @@ use JobMetric\Language\Models\Language as LanguageModels;
 use JobMetric\PackageCore\Exceptions\AssetFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\RegisterClassTypeNotFoundException;
+use JobMetric\PackageCore\Exceptions\ViewFolderNotFoundException;
 use JobMetric\PackageCore\PackageCore;
 use JobMetric\PackageCore\PackageCoreServiceProvider;
 
@@ -20,6 +21,7 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
      * @throws MigrationFolderNotFoundException
      * @throws RegisterClassTypeNotFoundException
      * @throws AssetFolderNotFoundException
+     * @throws ViewFolderNotFoundException
      */
     public function configuration(PackageCore $package): void
     {
@@ -27,6 +29,7 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
             ->hasConfig()
             ->hasAsset()
             ->hasRoute()
+            ->hasView()
             ->hasMigration()
             ->hasTranslation()
             ->registerClass('Language', Language::class);
