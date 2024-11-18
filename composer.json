@@ -24,7 +24,7 @@
         "jobmetric/laravel-package-core": "^1.7",
         "spatie/laravel-query-builder": "^5.7",
         "jobmetric/domi": "^1.11",
-        "jobmetric/panelio": "^1.12"
+        "jobmetric/panelio": "^1.13"
     },
     "autoload": {
         "files": [
