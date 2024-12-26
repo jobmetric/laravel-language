@@ -4,6 +4,7 @@ namespace JobMetric\Language\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use JobMetric\Language\Events\Language\SetLocaleEvent;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +32,8 @@ class SetLanguageMiddleware
                 app()->setLocale(config('app.locale'));
             }
         }
+
+        event(new SetLocaleEvent);
 
         return $next($request);
     }
