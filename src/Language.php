@@ -238,7 +238,7 @@ class Language
      * @return void
      * @throws Throwable
      */
-    public function addLanguageDate(string $locale): void
+    public function addLanguageData(string $locale): void
     {
         $languages = require realpath(__DIR__ . '/../data/languages.php');
 
