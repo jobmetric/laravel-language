@@ -93,7 +93,7 @@ class Language
 
             return [
                 'ok' => false,
-                'message' => trans('language::base.validation.errors'),
+                'message' => trans('package-core::base.validation.errors'),
                 'errors' => $errors,
                 'status' => 422
             ];
@@ -134,7 +134,7 @@ class Language
 
             return [
                 'ok' => false,
-                'message' => trans('language::base.validation.errors'),
+                'message' => trans('package-core::base.validation.errors'),
                 'errors' => $errors,
                 'status' => 422
             ];
@@ -149,7 +149,7 @@ class Language
             if (!$language) {
                 return [
                     'ok' => false,
-                    'message' => trans('language::base.validation.errors'),
+                    'message' => trans('package-core::base.validation.errors'),
                     'errors' => [
                         trans('language::base.validation.language_not_found')
                     ],
@@ -207,7 +207,7 @@ class Language
             if (!$language) {
                 return [
                     'ok' => false,
-                    'message' => trans('language::base.validation.errors'),
+                    'message' => trans('package-core::base.validation.errors'),
                     'errors' => [
                         trans('language::base.validation.language_not_found')
                     ],

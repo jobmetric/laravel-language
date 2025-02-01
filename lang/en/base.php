@@ -15,7 +15,6 @@ return [
     "name" => "Languages",
 
     "validation" => [
-        "errors" => "Validation errors occurred.",
         "locale" => "The :attribute (:locale) has already been taken.",
         "language_exist" => "The language does not exist in locale (:locale).",
         "language_not_found" => "The language not found.",
