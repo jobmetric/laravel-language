@@ -45,7 +45,7 @@ class Language
      */
     public function query(array $filter = []): QueryBuilder
     {
-        $fields = ['id', 'name', 'flag', 'locale', 'direction', 'status'];
+        $fields = ['id', 'name', 'flag', 'locale', 'direction', 'calendar', 'status'];
 
         return QueryBuilder::for(LanguageModel::class)
             ->allowedFields($fields)
@@ -105,6 +105,7 @@ class Language
             $language->flag = $data['flag'] ?? null;
             $language->locale = $data['locale'];
             $language->direction = $data['direction'];
+            $language->calendar = $data['calendar'];
             $language->status = $data['status'] ?? true;
             $language->save();
 
@@ -171,6 +172,10 @@ class Language
 
             if (array_key_exists('direction', $data)) {
                 $language->direction = $data['direction'];
+            }
+
+            if (array_key_exists('calendar', $data)) {
+                $language->calendar = $data['calendar'];
             }
 
             if (array_key_exists('status', $data)) {
@@ -251,6 +256,7 @@ class Language
         $language->flag = $languages[$locale]['flag'];
         $language->locale = $languages[$locale]['locale'];
         $language->direction = $languages[$locale]['direction'];
+        $language->calendar = $languages[$locale]['calendar'];
         $language->status = true;
 
         $language->save();

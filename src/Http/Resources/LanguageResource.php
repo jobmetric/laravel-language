@@ -11,6 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed flag
  * @property mixed locale
  * @property mixed direction
+ * @property mixed calendar
  * @property mixed status
  * @property mixed created_at
  * @property mixed updated_at
@@ -30,6 +31,7 @@ class LanguageResource extends JsonResource
             'flag' => $this->flag,
             'locale' => $this->locale,
             'direction' => $this->direction,
+            'calendar' => $this->calendar,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at

@@ -46,6 +46,18 @@
                                         <div class="form-errors text-danger fs-7 mt-2">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                <div class="mb-10">
+                                    <label class="form-label" for="input-calendar">{{ trans('language::base.form.fields.calendar.title') }}</label>
+                                    <select name="calendar" id="input-calendar" class="form-select" data-control="select2" data-hide-search="true">
+                                        <option></option>
+                                        @foreach(\JobMetric\Language\Enums\CalendarTypeEnum::values() as $calendar)
+                                            <option value="{{ $calendar }}" {{ old('calendar', $language->calendar ?? null) === $calendar ? 'selected' : '' }}>{{ $calendar }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('calendar')
+                                        <div class="form-errors text-danger fs-7 mt-2">{{ $message }}</div>
+                                    @enderror
+                                </div>
                                 <div class="mb-0">
                                     <label class="form-label" for="input-flag">{{ trans('language::base.form.fields.flag.title') }}</label>
                                     <select name="flag" id="input-flag" class="form-select" data-control="select2" data-placeholder="{{ trans('language::base.form.fields.flag.placeholder') }}">

@@ -4,6 +4,7 @@ namespace JobMetric\Language\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use JobMetric\Language\Enums\CalendarTypeEnum;
 use JobMetric\Language\Rules\CheckLocaleRule;
 
 class StoreLanguageRequest extends FormRequest
@@ -31,6 +32,7 @@ class StoreLanguageRequest extends FormRequest
                 new CheckLocaleRule
             ],
             'direction' => 'string',
+            'calendar' => 'string|in:' . implode(',', CalendarTypeEnum::values()),
             'status' => 'boolean',
         ];
     }

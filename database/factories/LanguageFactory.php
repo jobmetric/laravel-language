@@ -24,6 +24,7 @@ class LanguageFactory extends Factory
             'flag' => null,
             'locale' => null,
             'direction' => null,
+            'language' => null,
             'status' => true
         ];
     }
@@ -81,6 +82,20 @@ class LanguageFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             'direction' => $direction
+        ]);
+    }
+
+    /**
+     * set calendar
+     *
+     * @param string $calendar
+     *
+     * @return static
+     */
+    public function setCalendar(string $calendar): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'calendar' => $calendar
         ]);
     }
 

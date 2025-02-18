@@ -35,4 +35,49 @@ return [
         "language_data_not_exist" => "The language data does not exist in locale (:locale).",
     ],
 
+    "list" => [
+        "filters" => [
+            "name" => [
+                "title" => "Name",
+                "placeholder" => "Enter name",
+            ],
+        ],
+        "columns" => [
+            "flag" => "Flag",
+            "locale" => "Locale",
+            "direction" => "Direction",
+        ],
+    ],
+
+    "form" => [
+        "create" => [
+            "title" => "Create Language",
+        ],
+        "edit" => [
+            "title" => "Edit Language",
+        ],
+        "fields" => [
+            "name" => [
+                "title" => "Name",
+                "placeholder" => "Enter name",
+            ],
+            "locale" => [
+                "title" => "Locale",
+                "placeholder" => "Enter locale",
+            ],
+            "direction" => [
+                "title" => "Direction",
+                "rtl" => "Right to Left (rtl)",
+                "ltr" => "Left to Right (ltr)",
+            ],
+            "calendar" => [
+                "title" => "Calendar",
+            ],
+            "flag" => [
+                "title" => "Flag",
+                "placeholder" => "Select flag",
+            ],
+        ],
+    ],
+
 ];

@@ -70,6 +70,9 @@ return [
                 "rtl" => "راست به چپ (rtl)",
                 "ltr" => "چپ به راست (ltr)",
             ],
+            "calendar" => [
+                "title" => "تقویم",
+            ],
             "flag" => [
                 "title" => "پرچم",
                 "placeholder" => "پرچم را انتخاب کنید",

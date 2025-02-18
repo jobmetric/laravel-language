@@ -15,6 +15,7 @@ use JobMetric\PackageCore\Models\HasBooleanStatus;
  * @property string flag
  * @property string locale
  * @property string direction
+ * @property string calendar
  * @property string status
  */
 class Language extends Model
@@ -26,6 +27,7 @@ class Language extends Model
         'flag',
         'locale',
         'direction',
+        'calendar',
         'status'
     ];
 
@@ -39,6 +41,7 @@ class Language extends Model
         'flag' => 'string',
         'locale' => 'string',
         'direction' => 'string',
+        'calendar' => 'string',
         'status' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'

@@ -13,6 +13,7 @@ return [
         'flag' => 'iran.svg',
         'locale' => 'fa',
         'direction' => 'rtl',
+        'calendar' => 'jalali',
     ],
 
     'en' => [
@@ -20,6 +21,7 @@ return [
         'flag' => 'united-states.svg',
         'locale' => 'en',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'ar' => [
@@ -27,6 +29,7 @@ return [
         'flag' => 'saudi-arabia.svg',
         'locale' => 'ar',
         'direction' => 'rtl',
+        'calendar' => 'gregorian',
     ],
 
     'fr' => [
@@ -34,6 +37,7 @@ return [
         'flag' => 'france.svg',
         'locale' => 'fr',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'de' => [
@@ -41,6 +45,7 @@ return [
         'flag' => 'germany.svg',
         'locale' => 'de',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'es' => [
@@ -48,6 +53,7 @@ return [
         'flag' => 'spain.svg',
         'locale' => 'es',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'ru' => [
@@ -55,6 +61,7 @@ return [
         'flag' => 'russia.svg',
         'locale' => 'ru',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'zh' => [
@@ -62,6 +69,7 @@ return [
         'flag' => 'china.svg',
         'locale' => 'zh',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'it' => [
@@ -69,6 +77,7 @@ return [
         'flag' => 'italy.svg',
         'locale' => 'it',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'pt' => [
@@ -76,6 +85,7 @@ return [
         'flag' => 'portugal.svg',
         'locale' => 'pt',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'tr' => [
@@ -83,6 +93,7 @@ return [
         'flag' => 'turkey.svg',
         'locale' => 'tr',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'jp' => [
@@ -90,6 +101,7 @@ return [
         'flag' => 'japan.svg',
         'locale' => 'ja',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'ko' => [
@@ -97,6 +109,7 @@ return [
         'flag' => 'south-korea.svg',
         'locale' => 'ko',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'nl' => [
@@ -104,6 +117,7 @@ return [
         'flag' => 'netherlands.svg',
         'locale' => 'nl',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'sv' => [
@@ -111,6 +125,7 @@ return [
         'flag' => 'sweden.svg',
         'locale' => 'sv',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'hi' => [
@@ -118,6 +133,7 @@ return [
         'flag' => 'india.svg',
         'locale' => 'hi',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'th' => [
@@ -125,6 +141,7 @@ return [
         'flag' => 'thailand.svg',
         'locale' => 'th',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
 
@@ -133,6 +150,7 @@ return [
         'flag' => 'greece.svg',
         'locale' => 'el',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'pl' => [
@@ -140,6 +158,7 @@ return [
         'flag' => 'poland.svg',
         'locale' => 'pl',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'no' => [
@@ -147,6 +166,7 @@ return [
         'flag' => 'norway.svg',
         'locale' => 'no',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'da' => [
@@ -154,6 +174,7 @@ return [
         'flag' => 'denmark.svg',
         'locale' => 'da',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'fi' => [
@@ -161,6 +182,7 @@ return [
         'flag' => 'finland.svg',
         'locale' => 'fi',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'he' => [
@@ -168,6 +190,7 @@ return [
         'flag' => 'israel.svg',
         'locale' => 'he',
         'direction' => 'rtl',
+        'calendar' => 'gregorian',
     ],
 
     'uk' => [
@@ -175,6 +198,7 @@ return [
         'flag' => 'ukraine.svg',
         'locale' => 'uk',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'ro' => [
@@ -182,6 +206,7 @@ return [
         'flag' => 'romania.svg',
         'locale' => 'ro',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 
     'vi' => [
@@ -189,5 +214,6 @@ return [
         'flag' => 'vietnam.svg',
         'locale' => 'vi',
         'direction' => 'ltr',
+        'calendar' => 'gregorian',
     ],
 ];
