@@ -63,6 +63,14 @@ loadScriptsSequentially([
                     },
                     sortable: true
                 },
+                // calendar
+                {
+                    name: 'calendar',
+                    data: function(e) {
+                        return `<div class="align-center text-gray-800">${e.calendar_trans}</div>`
+                    },
+                    sortable: true
+                },
                 // status
                 {
                     name: 'status',

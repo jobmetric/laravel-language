@@ -46,6 +46,7 @@ return [
             "flag" => "پرچم",
             "locale" => "کلید زبان",
             "direction" => "جهت",
+            "calendar" => "نوع تقویم",
         ],
     ],
 
@@ -72,12 +73,18 @@ return [
             ],
             "calendar" => [
                 "title" => "تقویم",
+                "placeholder" => "تقویم را انتخاب کنید",
             ],
             "flag" => [
                 "title" => "پرچم",
                 "placeholder" => "پرچم را انتخاب کنید",
             ],
         ],
+    ],
+
+    "calendar_type" => [
+        "jalali" => "شمسی",
+        "gregorian" => "میلادی",
     ],
 
 ];

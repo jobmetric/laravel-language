@@ -48,10 +48,10 @@
                                 </div>
                                 <div class="mb-10">
                                     <label class="form-label" for="input-calendar">{{ trans('language::base.form.fields.calendar.title') }}</label>
-                                    <select name="calendar" id="input-calendar" class="form-select" data-control="select2" data-hide-search="true">
+                                    <select name="calendar" id="input-calendar" class="form-select" data-control="select2" data-hide-search="true" data-placeholder="{{ trans('language::base.form.fields.calendar.placeholder') }}">
                                         <option></option>
                                         @foreach(\JobMetric\Language\Enums\CalendarTypeEnum::values() as $calendar)
-                                            <option value="{{ $calendar }}" {{ old('calendar', $language->calendar ?? null) === $calendar ? 'selected' : '' }}>{{ $calendar }}</option>
+                                            <option value="{{ $calendar }}" {{ old('calendar', $language->calendar ?? null) === $calendar ? 'selected' : '' }}>{{ trans('language::base.calendar_type.' . $calendar) }}</option>
                                         @endforeach
                                     </select>
                                     @error('calendar')

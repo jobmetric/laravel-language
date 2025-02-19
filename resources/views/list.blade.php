@@ -20,9 +20,10 @@
                     </div>
                 </th>
                 <th width="6%" class="text-center text-gray-800">{{ trans('language::base.list.columns.flag') }}</th>
-                <th width="43%" class="text-gray-800">{{ trans('package-core::base.list.columns.name') }}</th>
+                <th width="33%" class="text-gray-800">{{ trans('package-core::base.list.columns.name') }}</th>
                 <th width="10%" class="text-center text-gray-800">{{ trans('language::base.list.columns.locale') }}</th>
                 <th width="10%" class="text-center text-gray-800">{{ trans('language::base.list.columns.direction') }}</th>
+                <th width="10%" class="text-center text-gray-800">{{ trans('language::base.list.columns.calendar') }}</th>
                 <th width="15%" class="text-center text-gray-800">{{ trans('package-core::base.list.columns.status') }}</th>
                 <th width="15%" class="text-center text-gray-800">{{ trans('package-core::base.list.columns.action') }}</th>
             </tr>

@@ -46,6 +46,7 @@ return [
             "flag" => "Flag",
             "locale" => "Locale",
             "direction" => "Direction",
+            "calendar" => "Calendar Type",
         ],
     ],
 
@@ -72,12 +73,18 @@ return [
             ],
             "calendar" => [
                 "title" => "Calendar",
+                "placeholder" => "Select calendar",
             ],
             "flag" => [
                 "title" => "Flag",
                 "placeholder" => "Select flag",
             ],
         ],
+    ],
+
+    "calendar_type" => [
+        "jalali" => "Jalali",
+        "gregorian" => "Gregorian",
     ],
 
 ];

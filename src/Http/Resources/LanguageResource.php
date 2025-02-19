@@ -32,6 +32,7 @@ class LanguageResource extends JsonResource
             'locale' => $this->locale,
             'direction' => $this->direction,
             'calendar' => $this->calendar,
+            'calendar_trans' => trans('language::base.calendar_type.' . $this->calendar),
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at
