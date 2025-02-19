@@ -47,6 +47,22 @@ class UpdateLanguageRequest extends FormRequest
     }
 
     /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => trans('language::base.form.fields.name.title'),
+            'flag' => trans('language::base.form.fields.flag.title'),
+            'locale' => trans('language::base.form.fields.locale.title'),
+            'direction' => trans('language::base.form.fields.direction.title'),
+            'calendar' => trans('language::base.form.fields.calendar.title'),
+        ];
+    }
+
+    /**
      * Set language id for validation
      *
      * @param int $language_id
