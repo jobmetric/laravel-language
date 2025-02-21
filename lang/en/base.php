@@ -18,6 +18,7 @@ return [
         "locale" => "The :attribute (:locale) has already been taken.",
         "language_exist" => "The language does not exist in locale (:locale).",
         "language_not_found" => "The language not found.",
+        "future_date" => "The :attribute must be in the future.",
     ],
 
     "messages" => [

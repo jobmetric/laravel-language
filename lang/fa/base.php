@@ -18,6 +18,7 @@ return [
         "locale" => ":attribute (:locale) از قبل وجود دارد.",
         "language_exist" => "زبان :locale از قبل وجود دارد.",
         "language_not_found" => "زبان پیدا نشد.",
+        "future_date" => ":attribute باید در آینده باشد.",
     ],
 
     "messages" => [
