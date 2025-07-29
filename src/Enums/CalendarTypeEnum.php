@@ -2,7 +2,7 @@
 
 namespace JobMetric\Language\Enums;
 
-use JobMetric\PackageCore\Enums\EnumToArray;
+use JobMetric\PackageCore\Enums\EnumMacros;
 
 /**
  * @method static GREGORIAN()
@@ -10,7 +10,7 @@ use JobMetric\PackageCore\Enums\EnumToArray;
  */
 enum CalendarTypeEnum: string
 {
-    use EnumToArray;
+    use EnumMacros;
 
     case GREGORIAN = "gregorian";
     case JALALI = "jalali";
