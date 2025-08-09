@@ -25,6 +25,6 @@ class Language extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return \JobMetric\Language\Language::class;
+        return 'Language';
     }
 }
