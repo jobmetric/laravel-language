@@ -1,6 +1,6 @@
 <?php
 
-namespace JobMetric\Category\Exceptions;
+namespace JobMetric\Language\Exceptions;
 
 use Exception;
 use Throwable;
