@@ -12,6 +12,36 @@ return [
     |
     */
 
+    "calendar_type" => [
+        "gregorian" => "Gregorian",
+        "jalali" => "Jalali",
+        "hijri" => "Hijri",
+        "hebrew" => "Hebrew",
+        "buddhist" => "Buddhist",
+        "coptic" => "Coptic",
+        "ethiopian" => "Ethiopian",
+        "chinese" => "Chinese",
+    ],
+
+    "direction" => [
+        "ltr" => "Left to Right",
+        "rtl" => "Right to Left",
+    ],
+
+    "weekdays" => [
+        "0" => "Saturday",
+        "1" => "Sunday",
+        "2" => "Monday",
+        "3" => "Tuesday",
+        "4" => "Wednesday",
+        "5" => "Thursday",
+        "6" => "Friday",
+    ],
+
+    "exceptions" => [
+        "language_data_not_exist" => "The language data does not exist in locale (:locale).",
+    ],
+
     "name" => "Languages",
 
     "validation" => [
@@ -30,10 +60,6 @@ return [
             "enable" => "{1} One language was enabled.|[2,*] :count languages were enabled.",
             "disable" => "{1} One language was disabled.|[2,*] :count languages were disabled.",
         ],
-    ],
-
-    "exceptions" => [
-        "language_data_not_exist" => "The language data does not exist in locale (:locale).",
     ],
 
     "list" => [
@@ -81,11 +107,6 @@ return [
                 "placeholder" => "Select flag",
             ],
         ],
-    ],
-
-    "calendar_type" => [
-        "jalali" => "Jalali",
-        "gregorian" => "Gregorian",
     ],
 
 ];
