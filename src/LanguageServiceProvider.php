@@ -5,6 +5,7 @@ namespace JobMetric\Language;
 use Illuminate\Support\Facades\View;
 use JobMetric\Language\Facades\Language;
 use JobMetric\Language\Models\Language as LanguageModels;
+use JobMetric\PackageCore\Enums\RegisterClassTypeEnum;
 use JobMetric\PackageCore\Exceptions\AssetFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\RegisterClassTypeNotFoundException;
@@ -32,7 +33,7 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
             ->hasView()
             ->hasMigration()
             ->hasTranslation()
-            ->registerClass('Language', Language::class);
+            ->registerClass('Language', Language::class, RegisterClassTypeEnum::SINGLETON());
     }
 
     /**
@@ -43,9 +44,7 @@ class LanguageServiceProvider extends PackageCoreServiceProvider
     public function afterBootPackage(): void
     {
         if (checkDatabaseConnection() && !$this->app->runningInConsole() && !$this->app->runningUnitTests()) {
-            $languages = LanguageModels::query()
-                ->where('status', true)
-                ->get();
+            $languages = LanguageModels::active()->get();
 
             View::composer('*', function ($view) use ($languages) {
                 $view->with('languages', $languages);
