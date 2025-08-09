@@ -2,15 +2,14 @@
 
 namespace JobMetric\Language;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use JobMetric\Category\Exceptions\LanguageDataNotExist;
-use JobMetric\Language\Events\Language\LanguageDeleteEvent;
-use JobMetric\Language\Events\Language\LanguageStoreEvent;
-use JobMetric\Language\Events\Language\LanguageUpdateEvent;
+use JobMetric\Language\Exceptions\LanguageDataNotExist;
+use JobMetric\Language\Events\Language\LanguageAddEvent;
+use JobMetric\Language\Events\Language\LanguageDeletedEvent;
+use JobMetric\Language\Events\Language\LanguageUpdatedEvent;
 use JobMetric\Language\Http\Requests\StoreLanguageRequest;
 use JobMetric\Language\Http\Requests\UpdateLanguageRequest;
 use JobMetric\Language\Http\Resources\LanguageResource;
@@ -21,23 +20,6 @@ use Throwable;
 class Language
 {
     /**
-     * The application instance.
-     *
-     * @var Application
-     */
-    protected Application $app;
-
-    /**
-     * Create a new Setting instance.
-     *
-     * @param Application $app
-     */
-    public function __construct(Application $app)
-    {
-        $this->app = $app;
-    }
-
-    /**
      * Get the specified language.
      *
      * @param array $filter
@@ -45,7 +27,15 @@ class Language
      */
     public function query(array $filter = []): QueryBuilder
     {
-        $fields = ['id', 'name', 'flag', 'locale', 'direction', 'calendar', 'status'];
+        $fields = [
+            'name',
+            'flag',
+            'locale',
+            'direction',
+            'calendar',
+            'first_day_of_week',
+            'status',
+        ];
 
         return QueryBuilder::for(LanguageModel::class)
             ->allowedFields($fields)
@@ -109,7 +99,7 @@ class Language
             $language->status = $data['status'] ?? true;
             $language->save();
 
-            event(new LanguageStoreEvent($language, $data));
+            event(new LanguageAddEvent($language, $data));
 
             return [
                 'ok' => true,
@@ -184,7 +174,7 @@ class Language
 
             $language->save();
 
-            event(new LanguageUpdateEvent($language, $data));
+            event(new LanguageUpdatedEvent($language, $data));
 
             return [
                 'ok' => true,
@@ -222,7 +212,7 @@ class Language
 
             $data = LanguageResource::make($language);
 
-            event(new LanguageDeleteEvent($language));
+            event(new LanguageDeletedEvent($language));
 
             $language->delete();
 
