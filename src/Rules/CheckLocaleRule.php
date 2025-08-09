@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 use JobMetric\Language\Models\Language;
 
-class CheckLocaleRule implements ValidationRule
+readonly class CheckLocaleRule implements ValidationRule
 {
     /**
      * Create a new rule instance.
@@ -15,7 +15,7 @@ class CheckLocaleRule implements ValidationRule
      * @return void
      */
     public function __construct(
-        private readonly int|null $language_id = null
+        private int|null $language_id = null
     )
     {
     }

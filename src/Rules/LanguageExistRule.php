@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 use JobMetric\Language\Models\Language;
 
-class LanguageExistRule implements ValidationRule
+readonly class LanguageExistRule implements ValidationRule
 {
     /**
      * Create a new rule instance.
@@ -15,7 +15,7 @@ class LanguageExistRule implements ValidationRule
      * @return void
      */
     public function __construct(
-        private readonly string $locale
+        private string $locale
     )
     {
     }
