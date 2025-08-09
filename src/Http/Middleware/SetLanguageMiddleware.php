@@ -4,7 +4,7 @@ namespace JobMetric\Language\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use JobMetric\Language\Events\Language\SetLocaleEvent;
+use JobMetric\Language\Events\SetLocaleEvent;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpFoundation\Response;
