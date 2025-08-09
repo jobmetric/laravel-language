@@ -5,9 +5,24 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use JobMetric\Language\Enums\CalendarTypeEnum;
 
+/**
+ * languages table migration.
+ *
+ * This migration creates a normalized registry for application languages used by
+ * internationalization (i18n), localization (L10n), formatting preferences, and UI
+ * behavior such as text direction or calendar system. The table name is resolved
+ * via the `language.tables.language` configuration key to keep it customizable per
+ * environment or installation.
+ *
+ * @see CalendarTypeEnum for canonical calendar values supported by the package.
+ */
 return new class extends Migration {
     /**
      * Run the migrations.
+     *
+     * Creates the languages table with semantic columns for i18n/L10n configuration.
+     * No data is seeded here; seeding should be handled via dedicated seeders to keep
+     * environments reproducible and testable.
      *
      * @return void
      */
@@ -18,34 +33,80 @@ return new class extends Migration {
 
             $table->string('name');
             /**
-             * The name field is used to store the language name.
+             * Human‑readable display name of the language.
+             *
+             * Examples: "Persian", "English (United Kingdom)".
+             * This value is not guaranteed to be unique; use `locale` for identity.
              */
 
             $table->string('flag')->nullable();
             /**
-             * The flag field is used to store the language flag.
+             * Optional visual representation of the language flag.
+             *
+             * Can be:
+             * - A file path or slug within your media storage, or
+             * - A flag emoji (e.g., "🇮🇷"), or
+             * - Any identifier understood by your presentation layer.
+             * Nullable to support headless or icon‑less deployments.
              */
 
             $table->string('locale');
             /**
-             * The locale field is used to store the language locale.
+             * Locale identifier following BCP‑47 style tags.
+             *
+             * Examples: "fa-IR", "en-GB", "ar-SA".
+             * Consider adding a UNIQUE index if each locale must be globally distinct.
              */
 
-            $table->string('direction');
+            $table->enum('direction', [
+                'ltr',
+                'rtl'
+            ])->default('ltr')->index();
             /**
-             * The direction field is used to store the language direction.
+             * Text direction for UI rendering and layout.
+             *
+             * Allowed values:
+             * - ltr: Left‑to‑Right scripts (e.g., Latin).
+             * - rtl: Right‑to‑Left scripts (e.g., Arabic, Persian, Hebrew).
+             * Indexed for efficient filtering.
              */
 
-            $table->string('calendar');
+            $table->string('calendar')->default(CalendarTypeEnum::GREGORIAN());
             /**
-             * The calendar field is used to store the language calendar.
+             * Calendar system identifier used for date presentation and parsing.
              *
-             * values: gregorian, jalali
+             * Common values include:
+             * - "gregorian"  -> first day of week 1 (Sunday)
+             * - "jalali"     -> first day of week 0 (Saturday)
+             * - "hijri"      -> first day of week 0 (Saturday)
+             * - "hebrew"     -> first day of week 0 (Saturday)
+             * - "buddhist"   -> first day of week 1 (Sunday)
+             * - "coptic"     -> first day of week 0 (Saturday)
+             * - "ethiopian"  -> first day of week 0 (Saturday)
+             * - "chinese"    -> first day of week 0 (Saturday)
              *
-             * use: @extends CalendarTypeEnum
+             * This column is a string to preserve forward compatibility with
+             * additional calendar systems. For canonical constants, see:
+             * @see CalendarTypeEnum
+             */
+
+            $table->unsignedTinyInteger('first_day_of_week')->default(1);
+            /**
+             * First day of the week used by the application calendar UI.
+             *
+             * Range: 0..6
+             * Mapping in this schema: 0=Saturday, 1=Sunday, ..., 6=Friday.
+             * Defaults to 0 (Saturday). Adjust in seed/config to match locale norms.
              */
 
             $table->boolean('status')->default(true);
+            /**
+             * Activation toggle for availability across the system.
+             *
+             * true  => language is active/available
+             * false => language is inactive/hidden
+             * Indexing can be added if you frequently filter by status.
+             */
 
             $table->timestamps();
         });
@@ -53,6 +114,10 @@ return new class extends Migration {
 
     /**
      * Reverse the migrations.
+     *
+     * Drops the languages table. This operation is destructive; ensure any dependent
+     * data or foreign‑key constraints are handled in prior migrations or guarded via
+     * application logic.
      *
      * @return void
      */
