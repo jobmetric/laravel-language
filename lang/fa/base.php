@@ -42,8 +42,6 @@ return [
         "language_data_not_exist" => "داده های زبان در (:locale) وجود ندارد.",
     ],
 
-    "name" => "زبان ها",
-
     "validation" => [
         "locale" => ":attribute (:locale) از قبل وجود دارد.",
         "language_exist" => "زبان :locale از قبل وجود دارد.",
@@ -59,53 +57,6 @@ return [
         "status" => [
             "enable" => "{1} یک زبان فعال شد.|[2,*] :count مورد زبان فعال شدند.",
             "disable" => "{1} یک زبان غیرفعال شد.|[2,*] :count مورد زبان غیرفعال شدند.",
-        ],
-    ],
-
-    "list" => [
-        "filters" => [
-            "name" => [
-                "title" => "نام",
-                "placeholder" => "نام را وارد کنید",
-            ],
-        ],
-        "columns" => [
-            "flag" => "پرچم",
-            "locale" => "کلید زبان",
-            "direction" => "جهت",
-            "calendar" => "نوع تقویم",
-        ],
-    ],
-
-    "form" => [
-        "create" => [
-            "title" => "ایجاد زبان",
-        ],
-        "edit" => [
-            "title" => "ویرایش زبان",
-        ],
-        "fields" => [
-            "name" => [
-                "title" => "نام",
-                "placeholder" => "نام زبان را وارد کنید.",
-            ],
-            "locale" => [
-                "title" => "کلید زبان",
-                "placeholder" => "کلید زبان را وارد کنید",
-            ],
-            "direction" => [
-                "title" => "جهت",
-                "rtl" => "راست به چپ (rtl)",
-                "ltr" => "چپ به راست (ltr)",
-            ],
-            "calendar" => [
-                "title" => "تقویم",
-                "placeholder" => "تقویم را انتخاب کنید",
-            ],
-            "flag" => [
-                "title" => "پرچم",
-                "placeholder" => "پرچم را انتخاب کنید",
-            ],
         ],
     ],
 
