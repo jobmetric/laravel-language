@@ -1,6 +1,6 @@
 <?php
 
-namespace JobMetric\Language\Tests;
+namespace JobMetric\Language\Tests\Feature;
 
 use JobMetric\Language\Facades\Language;
 use Tests\BaseDatabaseTestCase as BaseTestCase;
