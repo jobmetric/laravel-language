@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use JobMetric\Language\Exceptions\LanguageDataNotExist;
 use JobMetric\Language\Events\Language\LanguageAddEvent;
 use JobMetric\Language\Events\Language\LanguageDeletedEvent;
 use JobMetric\Language\Events\Language\LanguageUpdatedEvent;
-use JobMetric\Language\Http\Requests\StoreLanguageRequest;
-use JobMetric\Language\Http\Requests\UpdateLanguageRequest;
+use JobMetric\Language\Exceptions\LanguageDataNotExist;
 use JobMetric\Language\Http\Resources\LanguageResource;
 use JobMetric\Language\Models\Language as LanguageModel;
+use Panelify\Metadata\Http\Requests\StoreLanguageRequest;
+use Panelify\Metadata\Http\Requests\UpdateLanguageRequest;
 use Spatie\QueryBuilder\QueryBuilder;
 use Throwable;
 
