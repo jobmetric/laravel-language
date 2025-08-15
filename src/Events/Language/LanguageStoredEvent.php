@@ -4,7 +4,7 @@ namespace JobMetric\Language\Events\Language;
 
 use JobMetric\Language\Models\Language;
 
-readonly class LanguageAddEvent
+readonly class LanguageStoredEvent
 {
     /**
      * Create a new event instance.
