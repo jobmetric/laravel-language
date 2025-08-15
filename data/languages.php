@@ -2,18 +2,13 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Languages
-    |--------------------------------------------------------------------------
-    */
-
     'fa' => [
         'name' => 'فارسی',
         'flag' => 'iran.svg',
         'locale' => 'fa',
         'direction' => 'rtl',
         'calendar' => 'jalali',
+        'first_day_of_week' => 6, // Saturday
     ],
 
     'en' => [
@@ -22,6 +17,7 @@ return [
         'locale' => 'en',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'ar' => [
@@ -29,7 +25,8 @@ return [
         'flag' => 'saudi-arabia.svg',
         'locale' => 'ar',
         'direction' => 'rtl',
-        'calendar' => 'gregorian',
+        'calendar' => 'hijri',
+        'first_day_of_week' => 6, // Saturday
     ],
 
     'fr' => [
@@ -38,6 +35,7 @@ return [
         'locale' => 'fr',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'de' => [
@@ -46,6 +44,7 @@ return [
         'locale' => 'de',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'es' => [
@@ -54,6 +53,7 @@ return [
         'locale' => 'es',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'ru' => [
@@ -62,6 +62,7 @@ return [
         'locale' => 'ru',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'zh' => [
@@ -69,7 +70,8 @@ return [
         'flag' => 'china.svg',
         'locale' => 'zh',
         'direction' => 'ltr',
-        'calendar' => 'gregorian',
+        'calendar' => 'chinese',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'it' => [
@@ -78,6 +80,7 @@ return [
         'locale' => 'it',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'pt' => [
@@ -86,6 +89,7 @@ return [
         'locale' => 'pt',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'tr' => [
@@ -94,14 +98,16 @@ return [
         'locale' => 'tr',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
-    'jp' => [
+    'ja' => [
         'name' => '日本語',
         'flag' => 'japan.svg',
         'locale' => 'ja',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'ko' => [
@@ -110,6 +116,7 @@ return [
         'locale' => 'ko',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'nl' => [
@@ -118,6 +125,7 @@ return [
         'locale' => 'nl',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'sv' => [
@@ -126,6 +134,7 @@ return [
         'locale' => 'sv',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'hi' => [
@@ -134,6 +143,7 @@ return [
         'locale' => 'hi',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
     ],
 
     'th' => [
@@ -141,9 +151,9 @@ return [
         'flag' => 'thailand.svg',
         'locale' => 'th',
         'direction' => 'ltr',
-        'calendar' => 'gregorian',
+        'calendar' => 'buddhist',
+        'first_day_of_week' => 1, // Monday
     ],
-
 
     'el' => [
         'name' => 'Ελληνικά',
@@ -151,6 +161,7 @@ return [
         'locale' => 'el',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'pl' => [
@@ -159,6 +170,7 @@ return [
         'locale' => 'pl',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'no' => [
@@ -167,6 +179,7 @@ return [
         'locale' => 'no',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'da' => [
@@ -175,6 +188,7 @@ return [
         'locale' => 'da',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'fi' => [
@@ -183,6 +197,7 @@ return [
         'locale' => 'fi',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'he' => [
@@ -190,7 +205,8 @@ return [
         'flag' => 'israel.svg',
         'locale' => 'he',
         'direction' => 'rtl',
-        'calendar' => 'gregorian',
+        'calendar' => 'hebrew',
+        'first_day_of_week' => 6, // Saturday
     ],
 
     'uk' => [
@@ -199,6 +215,7 @@ return [
         'locale' => 'uk',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'ro' => [
@@ -207,6 +224,7 @@ return [
         'locale' => 'ro',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 1, // Monday
     ],
 
     'vi' => [
@@ -215,5 +233,24 @@ return [
         'locale' => 'vi',
         'direction' => 'ltr',
         'calendar' => 'gregorian',
+        'first_day_of_week' => 0, // Sunday
+    ],
+
+    'am' => [
+        'name' => 'አማርኛ',
+        'flag' => 'ethiopia.svg',
+        'locale' => 'am',
+        'direction' => 'ltr',
+        'calendar' => 'ethiopian',
+        'first_day_of_week' => 1, // Monday
+    ],
+
+    'ps' => [
+        'name' => 'پښتو',
+        'flag' => 'afghanistan.svg',
+        'locale' => 'ps',
+        'direction' => 'rtl',
+        'calendar' => 'jalali',
+        'first_day_of_week' => 6, // Saturday
     ],
 ];
