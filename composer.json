@@ -7,7 +7,8 @@
         "laravel",
         "jobmetric",
         "package",
-        "language"
+        "language",
+        "multi-language"
     ],
     "homepage": "https://doc.jobmetric.net/package/laravel-language",
     "authors": [
@@ -20,12 +21,13 @@
     ],
     "require": {
         "php": ">=8.2",
-        "ext-intl": "*",
         "laravel/framework": ">=9.19",
-        "jobmetric/laravel-package-core": "^1.20",
+        "jobmetric/laravel-package-core": "^1.25",
         "spatie/laravel-query-builder": "^6.3",
-        "jobmetric/domi": "^1.11",
-        "jobmetric/panelio": "^1.13"
+        "jobmetric/multi-calendar": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
     },
     "autoload": {
         "files": [
@@ -34,6 +36,11 @@
         "psr-4": {
             "JobMetric\\Language\\": "src/",
             "JobMetric\\Language\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "JobMetric\\Language\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -46,7 +53,7 @@
             }
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "support": {
         "issues": "https://github.com/jobmetric/laravel-language/issues",
         "forum": "https://twitter.com/jobmetric",
