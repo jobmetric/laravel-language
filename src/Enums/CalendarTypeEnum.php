@@ -18,12 +18,12 @@ enum CalendarTypeEnum: string
 {
     use EnumMacros;
 
-    case GREGORIAN = "gregorian";
-    case JALALI = "jalali";
-    case HIJRI = "hijri";
-    case HEBREW = "hebrew";
-    case BUDDHIST = "buddhist";
-    case COPTIC = "coptic";
-    case ETHIOPIAN = "ethiopian";
-    case CHINESE = "chinese";
+    case GREGORIAN = 'gregorian';
+    case JALALI = 'jalali';
+    case HIJRI = 'hijri';
+    case HEBREW = 'hebrew';
+    case BUDDHIST = 'buddhist';
+    case COPTIC = 'coptic';
+    case ETHIOPIAN = 'ethiopian';
+    case CHINESE = 'chinese';
 }
