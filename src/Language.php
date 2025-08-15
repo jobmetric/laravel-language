@@ -5,24 +5,27 @@ namespace JobMetric\Language;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use JobMetric\Language\Events\Language\LanguageAddEvent;
+use JobMetric\Language\Events\Language\LanguageStoredEvent;
 use JobMetric\Language\Events\Language\LanguageDeletedEvent;
+use JobMetric\Language\Events\Language\LanguageDeletingEvent;
 use JobMetric\Language\Events\Language\LanguageUpdatedEvent;
 use JobMetric\Language\Exceptions\LanguageDataNotExist;
+use JobMetric\Language\Http\Requests\StoreLanguageRequest;
+use JobMetric\Language\Http\Requests\UpdateLanguageRequest;
 use JobMetric\Language\Http\Resources\LanguageResource;
 use JobMetric\Language\Models\Language as LanguageModel;
-use Panelify\Metadata\Http\Requests\StoreLanguageRequest;
-use Panelify\Metadata\Http\Requests\UpdateLanguageRequest;
+use JobMetric\PackageCore\Output\Response;
+use RuntimeException;
 use Spatie\QueryBuilder\QueryBuilder;
 use Throwable;
 
 class Language
 {
     /**
-     * Get the specified language.
+     * Build a query for languages with allowed fields, filters, and sorts.
      *
-     * @param array $filter
+     * @param array<string, mixed> $filter Key-value filter conditions.
+     *
      * @return QueryBuilder
      */
     public function query(array $filter = []): QueryBuilder
@@ -35,6 +38,8 @@ class Language
             'calendar',
             'first_day_of_week',
             'status',
+            'created_at',
+            'updated_at',
         ];
 
         return QueryBuilder::for(LanguageModel::class)
@@ -46,10 +51,11 @@ class Language
     }
 
     /**
-     * Paginate the specified language.
+     * Paginate languages based on the given filter.
      *
-     * @param array $filter
-     * @param int $page_limit
+     * @param array<string, mixed> $filter Key-value filter conditions.
+     * @param int $page_limit Number of results per page.
+     *
      * @return LengthAwarePaginator
      */
     public function paginate(array $filter = [], int $page_limit = 15): LengthAwarePaginator
@@ -58,10 +64,11 @@ class Language
     }
 
     /**
-     * Get all languages.
+     * Retrieve all languages matching the given filter.
      *
-     * @param array $filter
-     * @return Collection
+     * @param array<string, mixed> $filter Key-value filter conditions.
+     *
+     * @return Collection<int, LanguageModel>
      */
     public function all(array $filter = []): Collection
     {
@@ -69,166 +76,86 @@ class Language
     }
 
     /**
-     * Store the specified language.
+     * Store a new language in the database.
      *
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $input The input data for creating a language.
+     *
+     * @return Response
      * @throws Throwable
      */
-    public function store(array $data): array
+    public function store(array $input): Response
     {
-        $validator = Validator::make($data, (new StoreLanguageRequest)->rules());
-        if ($validator->fails()) {
-            $errors = $validator->errors()->all();
+        $validated = dto($input, StoreLanguageRequest::class);
 
-            return [
-                'ok' => false,
-                'message' => trans('package-core::base.validation.errors'),
-                'errors' => $errors,
-                'status' => 422
-            ];
+        if ($validated instanceof Response) {
+            return $validated;
         }
 
-        return DB::transaction(function () use ($data) {
-            $language = new LanguageModel;
-            $language->name = $data['name'];
-            $language->flag = $data['flag'] ?? null;
-            $language->locale = $data['locale'];
-            $language->direction = $data['direction'];
-            $language->calendar = $data['calendar'];
-            $language->status = $data['status'] ?? true;
-            $language->save();
+        return DB::transaction(function () use ($validated) {
+            $language = LanguageModel::create($validated);
 
-            event(new LanguageAddEvent($language, $data));
+            event(new LanguageStoredEvent($language, $validated));
 
-            return [
-                'ok' => true,
-                'message' => trans('language::base.messages.created'),
-                'data' => LanguageResource::make($language),
-                'status' => 201
-            ];
+            return Response::make(true, trans('language::base.messages.created'), LanguageResource::make($language), 201);
         });
     }
 
     /**
-     * Update the specified language.
+     * Update an existing language in the database.
      *
-     * @param int $language_id
-     * @param array $data
-     * @return array
+     * @param int $language_id The ID of the language to update.
+     * @param array<string, mixed> $input The updated data for the language.
+     *
+     * @return Response
      */
-    public function update(int $language_id, array $data): array
+    public function update(int $language_id, array $input): Response
     {
-        $validator = Validator::make($data, (new UpdateLanguageRequest)->setLanguageId($language_id)->setData($data)->rules());
-        if ($validator->fails()) {
-            $errors = $validator->errors()->all();
+        $validated = dto($input, UpdateLanguageRequest::class, [
+            'language_id' => $language_id,
+        ]);
 
-            return [
-                'ok' => false,
-                'message' => trans('package-core::base.validation.errors'),
-                'errors' => $errors,
-                'status' => 422
-            ];
+        if ($validated instanceof Response) {
+            return $validated;
         }
 
-        return DB::transaction(function () use ($language_id, $data) {
-            /**
-             * @var LanguageModel $language
-             */
-            $language = LanguageModel::query()->where('id', $language_id)->first();
+        return DB::transaction(function () use ($language_id, $validated) {
+            /** @var LanguageModel $language */
+            $language = LanguageModel::findOrFail($language_id)->fill($validated)->save();
 
-            if (!$language) {
-                return [
-                    'ok' => false,
-                    'message' => trans('package-core::base.validation.errors'),
-                    'errors' => [
-                        trans('language::base.validation.language_not_found')
-                    ],
-                    'status' => 404
-                ];
-            }
+            event(new LanguageUpdatedEvent($language, $validated));
 
-            if (array_key_exists('name', $data)) {
-                $language->name = $data['name'];
-            }
-
-            if (array_key_exists('flag', $data)) {
-                $language->flag = $data['flag'];
-            }
-
-            if (array_key_exists('locale', $data)) {
-                $language->locale = $data['locale'];
-            }
-
-            if (array_key_exists('direction', $data)) {
-                $language->direction = $data['direction'];
-            }
-
-            if (array_key_exists('calendar', $data)) {
-                $language->calendar = $data['calendar'];
-            }
-
-            if (array_key_exists('status', $data)) {
-                $language->status = $data['status'];
-            }
-
-            $language->save();
-
-            event(new LanguageUpdatedEvent($language, $data));
-
-            return [
-                'ok' => true,
-                'message' => trans('language::base.messages.updated'),
-                'data' => LanguageResource::make($language),
-                'status' => 200
-            ];
+            return Response::make(true, trans('language::base.messages.updated'), LanguageResource::make($language));
         });
     }
 
     /**
-     * Delete the specified language.
+     * Delete a language from the database.
      *
-     * @param int $language_id
-     * @return array
+     * @param int $language_id The ID of the language to delete.
+     *
+     * @return Response
      */
-    public function delete(int $language_id): array
+    public function delete(int $language_id): Response
     {
         return DB::transaction(function () use ($language_id) {
-            /**
-             * @var LanguageModel $language
-             */
-            $language = LanguageModel::query()->where('id', $language_id)->first();
+            $language = LanguageModel::findOrFail($language_id);
 
-            if (!$language) {
-                return [
-                    'ok' => false,
-                    'message' => trans('package-core::base.validation.errors'),
-                    'errors' => [
-                        trans('language::base.validation.language_not_found')
-                    ],
-                    'status' => 404
-                ];
-            }
+            event(new LanguageDeletingEvent($language));
 
             $data = LanguageResource::make($language);
 
-            event(new LanguageDeletedEvent($language));
-
             $language->delete();
 
-            return [
-                'ok' => true,
-                'message' => trans('language::base.messages.deleted'),
-                'data' => $data,
-                'status' => 200
-            ];
+            event(new LanguageDeletedEvent($language));
+
+            return Response::make(true, trans('language::base.messages.deleted'), $data);
         });
     }
 
     /**
-     * Add Language Data
+     * Add a language from the predefined data file by locale.
      *
-     * @param string $locale
+     * @param string $locale The locale code to add (e.g., "en", "fa").
      *
      * @return void
      * @throws Throwable
@@ -241,52 +168,44 @@ class Language
             throw new LanguageDataNotExist($locale);
         }
 
-        $language = new LanguageModel;
-        $language->name = $languages[$locale]['name'];
-        $language->flag = $languages[$locale]['flag'];
-        $language->locale = $languages[$locale]['locale'];
-        $language->direction = $languages[$locale]['direction'];
-        $language->calendar = $languages[$locale]['calendar'];
-        $language->status = true;
-
-        $language->save();
+        LanguageModel::create($languages[$locale]);
     }
 
     /**
-     * Get list of flag images with formatted data.
+     * Get a list of available flag images with their formatted names.
      *
-     * @return array
+     * @return array<int, array{value: string, name: string}>
+     * @throws Throwable
      */
     public function getFlags(): array
     {
-        $path = public_path('assets/vendor/language/flags');
-        $files = scandir($path);
-        $flags = [];
+        return cache()->remember('language.flags.list.v1', now()->addDay(), function () {
+            $path = public_path('assets/vendor/language/flags');
 
-        foreach ($files as $file) {
-            if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
-                $nameWithoutExtension = pathinfo($file, PATHINFO_FILENAME);
-                $formattedName = $this->formatName($nameWithoutExtension);
-
-                $flags[] = [
-                    'value' => $file,
-                    'name' => $formattedName,
-                ];
+            if (!is_dir($path)) {
+                throw new RuntimeException("The directory {$path} does not exist. Please ensure the flags directory is present.");
             }
-        }
 
-        return $flags;
-    }
+            $files = @scandir($path) ?: [];
+            $flags = [];
 
-    /**
-     * Format the filename to replace dashes with spaces and capitalize words.
-     *
-     * @param string $name
-     * @return string
-     */
-    private function formatName(string $name): string
-    {
-        $name = str_replace('-', ' ', $name);
-        return ucwords($name);
+            foreach ($files as $file) {
+                if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
+                    $nameWithoutExtension = pathinfo($file, PATHINFO_FILENAME);
+
+                    // Directly format the name without separate method
+                    $formattedName = ucwords(trim(str_replace(['-', '_'], ' ', $nameWithoutExtension)));
+
+                    $flags[] = [
+                        'value' => $file,
+                        'name' => $formattedName,
+                    ];
+                }
+            }
+
+            usort($flags, static fn($a, $b) => strnatcasecmp($a['name'], $b['name']));
+
+            return $flags;
+        });
     }
 }

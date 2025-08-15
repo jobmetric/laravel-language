@@ -60,4 +60,14 @@ return [
         ],
     ],
 
+    "fields" => [
+        "name" => "نام زبان",
+        "flag" => "پرچم",
+        "locale" => "محلی سازی",
+        "direction" => "جهت",
+        "calendar" => "تقویم",
+        "first_day_of_week" => "اولین روز هفته",
+        "status" => "وضعیت",
+    ],
+
 ];

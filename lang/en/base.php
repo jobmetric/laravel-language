@@ -60,4 +60,14 @@ return [
         ],
     ],
 
+    "fields" => [
+        "name" => "Name",
+        "flag" => "Flag",
+        "locale" => "Locale",
+        "direction" => "Direction",
+        "calendar" => "Calendar",
+        "first_day_of_week" => "First Day of Week",
+        "status" => "Status",
+    ],
+
 ];
