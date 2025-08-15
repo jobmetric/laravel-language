@@ -76,14 +76,14 @@ return new class extends Migration {
              * Calendar system identifier used for date presentation and parsing.
              *
              * Common values include:
-             * - "gregorian"  -> first day of week 1 (Sunday)
-             * - "jalali"     -> first day of week 0 (Saturday)
-             * - "hijri"      -> first day of week 0 (Saturday)
-             * - "hebrew"     -> first day of week 0 (Saturday)
-             * - "buddhist"   -> first day of week 1 (Sunday)
-             * - "coptic"     -> first day of week 0 (Saturday)
-             * - "ethiopian"  -> first day of week 0 (Saturday)
-             * - "chinese"    -> first day of week 0 (Saturday)
+             * - "gregorian"  -> first day of week 0 (Sunday)
+             * - "jalali"     -> first day of week 6 (Saturday)
+             * - "hijri"      -> first day of week 6 (Saturday)
+             * - "hebrew"     -> first day of week 0 (Sunday)
+             * - "buddhist"   -> first day of week 0 (Sunday)
+             * - "coptic"     -> first day of week 0 (Sunday)
+             * - "ethiopian"  -> first day of week 0 (Sunday)
+             * - "chinese"    -> first day of week 0 (Sunday)
              *
              * This column is a string to preserve forward compatibility with
              * additional calendar systems. For canonical constants, see:
@@ -95,11 +95,11 @@ return new class extends Migration {
              * First day of the week used by the application calendar UI.
              *
              * Range: 0..6
-             * Mapping in this schema: 0=Saturday, 1=Sunday, ..., 6=Friday.
+             * Mapping in this schema: 0=Sunday, 1=Monday, ..., 6=Saturday.
              * Defaults to 0 (Saturday). Adjust in seed/config to match locale norms.
              */
 
-            $table->boolean('status')->default(true);
+            $table->boolean('status')->default(true)->index();
             /**
              * Activation toggle for availability across the system.
              *
