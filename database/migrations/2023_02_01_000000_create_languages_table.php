@@ -50,11 +50,11 @@ return new class extends Migration {
              * Nullable to support headless or icon‑less deployments.
              */
 
-            $table->string('locale');
+            $table->string('locale', 10)->unique();
             /**
              * Locale identifier following BCP‑47 style tags.
              *
-             * Examples: "fa-IR", "en-GB", "ar-SA".
+             * Examples: "fa", "en", "ar".
              * Consider adding a UNIQUE index if each locale must be globally distinct.
              */
 
@@ -71,7 +71,7 @@ return new class extends Migration {
              * Indexed for efficient filtering.
              */
 
-            $table->string('calendar')->default(CalendarTypeEnum::GREGORIAN());
+            $table->string('calendar', 20)->default(CalendarTypeEnum::GREGORIAN())->index();
             /**
              * Calendar system identifier used for date presentation and parsing.
              *
@@ -109,6 +109,8 @@ return new class extends Migration {
              */
 
             $table->timestamps();
+
+            $table->index(['status', 'locale'], 'LANGUAGE_STATUS_LOCALE_INDEX');
         });
     }
 
