@@ -5,115 +5,145 @@ namespace JobMetric\Language\Casts;
 use BackedEnum;
 use Carbon\Carbon;
 use DateTimeInterface;
+use DateTimeZone;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use JobMetric\Language\Models\Language;
+use JobMetric\Language\Support\CurrentLanguage;
 use JobMetric\MultiCalendar\Factory\CalendarConverterFactory;
 use JobMetric\MultiCalendar\Helpers\NumberTransliterator;
 use Throwable;
 
 /**
- * Cast dates based on the current language calendar using jobmetric/multi-calendar.
+ * Converts date/datetime attributes between storage (Gregorian) and the user's language calendar.
  *
- * Storage:
- *  - Always stores in Gregorian as 'Y-m-d H:i:s' (app timezone).
+ * Workflow:
+ * - On get(): reads a Gregorian value from DB, converts only the Y-m-d part using the current language's calendar,
+ *   keeps the time part as-is, applies chosen separator and digit transliteration.
+ * - On set(): interprets the incoming human value primarily as the current language calendar (calendar-first),
+ *   converts to Gregorian, normalizes timezone, and stores as 'Y-m-d H:i:s'.
  *
- * Get (DB -> Response):
- *  - Reads DB Gregorian, converts the Y-m-d part to the language calendar (using selected separator).
- *  - Appends time part (if mode is 'datetime') without calendar conversion.
- *  - Optionally transliterates digits (en|fa|ar).
- *
- * Set (Request -> DB):
- *  - If input is ISO-like Gregorian (e.g., '2025-08-16' or '2025-08-16 13:45:00'), parses directly.
- *  - Otherwise, treats input as language-calendar date string, splits by provided separator,
- *    converts to Gregorian via CalendarConverterFactory::make($calendar)->toGregorian(Y, m, d),
- *    keeps time part if present and mode is 'datetime'.
- *
- * Arguments (castUsing):
- *  - mode: 'date' or 'datetime' (default: 'date')
- *  - date_sep: '-', '/', '.' (default: '-')
- *  - digits: 'en' | 'fa' | 'ar' (default: 'en')
- *
- * Timezone:
- *  - Uses 'accept-timezone' request header, falls back to config('app.timezone').
- *
- * Fail-safe:
- *  - If language or converter is missing, falls back to plain Gregorian behavior.
+ * Key points:
+ * - Storage is always Gregorian in app timezone.
+ * - Input supports '-', '/', '.' separators and Persian/Arabic digits.
+ * - When language or driver is missing, it falls back to Gregorian behavior.
  */
 class DateBasedOnCalendarCast implements CastsAttributes
 {
-    /** @var 'date'|'datetime' */
+    /**
+     * Controls whether the attribute is handled as a date-only value or a full datetime (affects time parsing/formatting).
+     *
+     * @var 'date'|'datetime'
+     */
     protected string $mode;
 
-    /** @var string '-', '/', '.' */
+    /**
+     * Controls the date separator used in human-facing strings (e.g., "Y-m-d" vs "Y/m/d" vs "Y.m.d").
+     *
+     * @var string
+     */
     protected string $dateSep;
 
-    /** @var 'en'|'fa'|'ar' */
+    /**
+     * Controls digit transliteration in human-facing strings (auto-resolved or explicit 'en'|'fa'|'ar').
+     *
+     * @var 'en'|'fa'|'ar'
+     */
     protected string $digits;
 
     /**
-     * @param string $mode 'date' or 'datetime'
-     * @param string $dateSep '-', '/', '.'
-     * @param string $digits 'en'|'fa'|'ar'
+     * Caches calendar converters per request keyed by calendar identifier to avoid repeated factory calls.
+     *
+     * @var array<string, mixed>
      */
-    public function __construct(string $mode = 'date', string $dateSep = '-', string $digits = 'en')
+    protected static array $converterCache = [];
+
+    /**
+     * Build the cast with runtime options for mode, date separator, and digit transliteration.
+     *
+     * Behavior impact:
+     * - $mode affects whether a time part is expected/returned.
+     * - $dateSep affects only the human-facing date rendering; input accepts -, /, . regardless.
+     * - $digits controls output digits; set 'auto' in castUsing to follow current locale.
+     *
+     * @param string $mode
+     * @param string $dateSep
+     * @param string $digits
+     */
+    public function __construct(string $mode = 'date', string $dateSep = '-', string $digits = 'auto')
     {
         $this->mode = $mode === 'datetime' ? 'datetime' : 'date';
         $this->dateSep = in_array($dateSep, ['-', '/', '.'], true) ? $dateSep : '-';
-        $this->digits = in_array($digits, ['en', 'fa', 'ar'], true) ? $digits : 'en';
+        $this->digits = $this->resolveDigits($digits);
     }
 
     /**
-     * Cast the given value (DB -> Response).
+     * Read a DB value (Gregorian) and convert it to a human string in the current language calendar.
      *
-     * @param  Model  $model
-     * @param  string $key
-     * @param  mixed  $value
-     * @param  array<string,mixed> $attributes
-     * @return mixed
+     * Flow:
+     * 1) Guard null/zero-date.
+     * 2) Normalize to Carbon in client timezone.
+     * 3) If language calendar exists, convert Y-m-d using multi-calendar; otherwise format as Gregorian.
+     * 4) Append time part for 'datetime' mode and apply digit transliteration.
+     *
+     * @param Model $model
+     * @param string $key
+     * @param mixed $value
+     * @param array<string,mixed> $attributes
+     *
+     * @return string|null
      */
-    public function get(Model $model, string $key, mixed $value, array $attributes): mixed
+    public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
-        if ($value === null) {
+        if ($value === null || (is_string($value) && str_starts_with($value, '0000-00-00'))) {
             return null;
         }
 
-        $appTz = (string) config('app.timezone');
-        $clientTz = $this->safeTimezone((string) request()->header('accept-timezone', $appTz));
+        $appTz = (string)config('app.timezone');
+        $clientTz = $this->safeTimezone((string)request()->header('accept-timezone', $appTz));
 
-        // Normalize DB value (Gregorian) to Carbon in client timezone
         $dt = $this->toCarbon($value, $appTz)->setTimezone($clientTz);
 
-        $lang = $this->currentLanguage();
-        if (!$lang || empty($lang->calendar)) {
-            // Gregorian fallback (format as chosen separator)
+        $language = $this->currentLanguage();
+        if (!$language || empty($language->calendar)) {
             $date = $dt->format('Y' . $this->dateSep . 'm' . $this->dateSep . 'd');
             $out = $this->mode === 'datetime' ? $date . ' ' . $dt->format('H:i:s') : $date;
+
             return $this->transliterate($out, $this->digits);
         }
 
-        // Convert date part via multi-calendar
         [$y, $m, $d] = [$dt->year, $dt->month, $dt->day];
 
         try {
-            $conv = CalendarConverterFactory::make((string) ($lang->calendar instanceof BackedEnum ? $lang->calendar->value : $lang->calendar));
+            $calendarKey = $language->calendar instanceof BackedEnum ? $language->calendar->value : (string)$language->calendar;
+            $conv = $this->converterFor($calendarKey);
             $date = $conv->fromGregorian($y, $m, $d, $this->dateSep);
         } catch (Throwable) {
             $date = $dt->format('Y' . $this->dateSep . 'm' . $this->dateSep . 'd');
         }
 
         $out = $this->mode === 'datetime' ? $date . ' ' . $dt->format('H:i:s') : $date;
+
         return $this->transliterate($out, $this->digits);
     }
 
     /**
-     * Prepare the given value for storage (Request -> DB).
+     * Take a human input (calendar-first) and convert it to a normalized Gregorian DB value.
      *
-     * @param  Model  $model
-     * @param  string $key
-     * @param  mixed  $value
-     * @param  array<string,mixed> $attributes
+     * Flow:
+     * 1) Guard null/zero-date.
+     * 2) Fast-path for DateTimeInterface/timestamp (already Gregorian).
+     * 3) If language calendar exists:
+     *    - Split "date [time]" (accept -, /, .) and transliterate digits to English.
+     *    - Convert Y-m-d from language calendar to Gregorian via converter.
+     *    - Combine with time (if mode is 'datetime') and normalize timezone.
+     * 4) Fallback: try parsing as Gregorian string (with digit normalization).
+     *
+     * @param Model $model
+     * @param string $key
+     * @param mixed $value
+     * @param array<string,mixed> $attributes
+     *
      * @return mixed
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): mixed
@@ -122,122 +152,87 @@ class DateBasedOnCalendarCast implements CastsAttributes
             return null;
         }
 
-        $appTz    = (string) config('app.timezone');
-        $clientTz = $this->safeTimezone((string) request()->header('accept-timezone', $appTz));
+        $appTz = (string)config('app.timezone');
+        $clientTz = $this->safeTimezone((string)request()->header('accept-timezone', $appTz));
 
-        // Fast-path for DateTime / timestamp
         if ($value instanceof DateTimeInterface || is_int($value) || (is_string($value) && ctype_digit(trim($value)))) {
             return $this->toCarbon($value, $clientTz)->setTimezone($appTz)->format('Y-m-d H:i:s');
         }
 
-        $raw = trim((string) $value);
+        $raw = trim((string)$value);
         if ($raw === '' || str_starts_with($raw, '0000-00-00')) {
             return null;
         }
 
-        // 1) If we have a language calendar (non-gregorian), parse as HUMAN first.
         $language = $this->currentLanguage();
         if ($language && !empty($language->calendar)) {
             try {
-                $calendarKey = $language->calendar instanceof BackedEnum
-                    ? $language->calendar->value
-                    : (string) $language->calendar;
+                $calendarKey = $language->calendar instanceof BackedEnum ? $language->calendar->value : (string)$language->calendar;
 
-                // Use jobmetric/multi-calendar
-                $conv = CalendarConverterFactory::make($calendarKey);
+                $parts = explode(' ', $raw, 2);
+                $dateStr = trim($parts[0]);
+                $timeStr = ($this->mode === 'datetime' && isset($parts[1])) ? trim($parts[1]) : null;
 
-                // split "date [time]" once
-                $parts   = explode(' ', $raw, 2);
-                $dateStr = $parts[0];
-                $timeStr = $this->mode === 'datetime' && isset($parts[1]) ? trim($parts[1]) : null;
-
-                // normalize digits to English before splitting
                 $dateStrEn = $this->transliterate($dateStr, 'en');
+                if ($timeStr !== null) {
+                    $timeStr = $this->transliterate($timeStr, 'en');
+                }
 
-                // accept -, / or . as separators; don't bind to a specific one
                 $dateBits = preg_split('/[\/\-.]/', $dateStrEn);
-                if (count($dateBits) === 3) {
+                if (is_array($dateBits) && count($dateBits) === 3) {
                     [$y, $m, $d] = array_map('intval', $dateBits);
 
-                    // HUMAN (language calendar) -> Gregorian
-                    $greg = $conv->toGregorian($y, $m, $d); // [Y, m, d]
+                    $conv = $this->converterFor($calendarKey);
+                    $greg = $conv->toGregorian($y, $m, $d);
+
                     if (is_array($greg) && count($greg) === 3) {
                         [$gy, $gm, $gd] = array_map('intval', $greg);
                         $isoDate = sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
-                        $iso     = $timeStr ? $isoDate.' '.$timeStr : $isoDate;
+                        $iso = ($this->mode === 'datetime' && $timeStr) ? $isoDate . ' ' . $timeStr : $isoDate;
 
                         return $this->toCarbon($iso, $clientTz)->setTimezone($appTz)->format('Y-m-d H:i:s');
                     }
                 }
             } catch (Throwable) {
-                // fall through to Gregorian path
+                // fall through to Gregorian parse
             }
         }
 
-        // 2) Fallback: treat as Gregorian string
-        return $this->toCarbon($raw, $clientTz)->setTimezone($appTz)->format('Y-m-d H:i:s');
+        $rawEn = $this->transliterate($raw, 'en');
+
+        return $this->toCarbon($rawEn, $clientTz)->setTimezone($appTz)->format('Y-m-d H:i:s');
     }
 
-
     /**
-     * Factory-style usage for Laravel cast arguments.
-     * Usage:
-     *   'start_date'  => DateBasedOnCalendarCast::class . ':date,-,fa'
-     *   'publish_at'  => DateBasedOnCalendarCast::class . ':datetime,/,en'
+     * Allow passing mode/sep/digits via Eloquent cast string (e.g., ':datetime,/,fa').
      *
-     * @param  array<int,string> $arguments
+     * Effect:
+     * - Instantiates the cast with per-attribute options for flexible formatting.
+     *
+     * @param array<int,string> $arguments
+     *
      * @return static
      */
     public static function castUsing(array $arguments): static
     {
-        $mode     = $arguments[0] ?? 'date';
-        $dateSep  = $arguments[1] ?? '-';
-        $digits   = $arguments[2] ?? 'en';
+        $mode = $arguments[0] ?? 'date';
+        $dateSep = $arguments[1] ?? '-';
+        $digits = $arguments[2] ?? 'auto';
 
         return new self($mode, $dateSep, $digits);
     }
 
     /**
-     * Try parsing as Gregorian (ISO/timestamp/Carbon).
+     * Normalize any supported input into Carbon under a given timezone.
      *
-     * @param  mixed  $value
-     * @param  string $tz
-     * @return Carbon|null
-     */
-    protected function tryParseGregorian(mixed $value, string $tz): ?Carbon
-    {
-        try {
-            if ($value instanceof DateTimeInterface || is_int($value)) {
-                return $this->toCarbon($value, $tz);
-            }
-
-            if (is_string($value)) {
-                $trim = trim($value);
-                if ($trim === '' || Str::startsWith($trim, '0000-00-00')) {
-                    return null;
-                }
-
-                // ISO-ish check
-                if (preg_match('/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2})?$/', $trim)) {
-                    return $this->toCarbon($trim, $tz);
-                }
-
-                if (ctype_digit($trim)) {
-                    return $this->toCarbon((int) $trim, $tz);
-                }
-            }
-
-            return null;
-        } catch (Throwable) {
-            return null;
-        }
-    }
-
-    /**
-     * Normalize arbitrary value to Carbon in the given timezone.
+     * Accepts:
+     * - DateTimeInterface instance
+     * - UNIX timestamp (int|string)
+     * - Parseable date/datetime string
      *
-     * @param  mixed  $value
-     * @param  string $tz
+     * @param mixed $value
+     * @param string $tz
+     *
      * @return Carbon
      */
     protected function toCarbon(mixed $value, string $tz): Carbon
@@ -250,57 +245,95 @@ class DateBasedOnCalendarCast implements CastsAttributes
             return Carbon::createFromTimestamp($value, $tz);
         }
 
-        $string = (string) $value;
+        $string = (string)$value;
         if (ctype_digit($string)) {
-            return Carbon::createFromTimestamp((int) $string, $tz);
+            return Carbon::createFromTimestamp((int)$string, $tz);
         }
 
         return Carbon::parse($string, $tz);
     }
 
     /**
-     * Get current Language model by app locale.
+     * Resolve the current language model using a per-request cache for performance.
      *
      * @return Language|null
      */
     protected function currentLanguage(): ?Language
     {
-        return Language::query()->where('locale', app()->getLocale())->first();
+        return CurrentLanguage::get();
     }
 
     /**
-     * Validate/normalize timezone name.
+     * Validate and normalize a timezone identifier, falling back to app timezone if invalid.
      *
-     * @param  string $tz
+     * @param string $tz
+     *
      * @return string
      */
     protected function safeTimezone(string $tz): string
     {
         try {
-            new \DateTimeZone($tz);
+            new DateTimeZone($tz);
             return $tz;
         } catch (Throwable) {
-            return (string) config('app.timezone');
+            return (string)config('app.timezone');
         }
     }
 
     /**
-     * Transliterate digits using Multi-Calendar helper.
+     * Convert digits in a string to the desired numeral system (English/Persian/Arabic).
      *
-     * @param  string $str
-     * @param  'en'|'fa'|'ar' $target
+     * @param string $str
+     * @param 'en'|'fa'|'ar'|'auto' $target
+     *
      * @return string
      */
     protected function transliterate(string $str, string $target): string
     {
-        if (!in_array($target, ['en', 'fa', 'ar'], true)) {
-            return $str;
-        }
+        $target = in_array($target, ['en', 'fa', 'ar'], true) ? $target : 'en';
 
         try {
             return NumberTransliterator::trNum($str, $target);
         } catch (Throwable) {
             return $str;
         }
+    }
+
+    /**
+     * Determine the digit system to use based on explicit input or the current locale (auto).
+     *
+     * @param string|null $given
+     *
+     * @return 'en'|'fa'|'ar'
+     */
+    protected function resolveDigits(?string $given): string
+    {
+        if (in_array($given, ['en', 'fa', 'ar'], true)) {
+            return $given;
+        }
+
+        $lang = $this->currentLanguage();
+
+        return match (optional($lang)->locale) {
+            'fa' => 'fa',
+            'ar' => 'ar',
+            default => 'en',
+        };
+    }
+
+    /**
+     * Retrieve (and cache) a calendar converter for the given calendar key.
+     *
+     * @param string $calendarKey
+     *
+     * @return mixed
+     */
+    protected function converterFor(string $calendarKey): mixed
+    {
+        if (!isset(self::$converterCache[$calendarKey])) {
+            self::$converterCache[$calendarKey] = CalendarConverterFactory::make($calendarKey);
+        }
+
+        return self::$converterCache[$calendarKey];
     }
 }
