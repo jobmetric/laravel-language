@@ -1,58 +1,84 @@
 <?php
 
-use JobMetric\Language\Facades\Language;
+use Carbon\Carbon;
 
-if (!function_exists('storeLanguage')) {
+if (!function_exists('client_timezone')) {
     /**
-     * store language
+     * Get the effective client timezone resolved by SetTimezoneMiddleware.
      *
-     * @param array $data
+     * Order:
+     * 1) config('app.client_timezone')   ← set by middleware per request
+     * 2) config('app.timezone')          ← app fallback (usually 'UTC')
      *
-     * @return array
+     * @return string
      */
-    function storeLanguage(array $data): array
+    function client_timezone(): string
     {
-        return Language::store($data);
+        $tz = config('app.client_timezone');
+        if (is_string($tz) && $tz !== '') {
+            return $tz;
+        }
+
+        return (string)config('app.timezone', 'UTC');
     }
 }
 
-if (!function_exists('updateLanguage')) {
+if (!function_exists('tz_format')) {
     /**
-     * update language
+     * Format a date/time value into the client's timezone without mutating storage conventions.
      *
-     * @param int $language_id
-     * @param array $data
+     * Behavior:
+     * - Parses the input using $fromTz (default: config('app.timezone'), typically UTC).
+     * - Converts to the desired target timezone (default: client_timezone()).
+     * - Formats using the provided $format.
      *
-     * @return array
+     * @param Carbon|DateTimeInterface|int|string $value
+     * @param string $format
+     * @param string|null $tz
+     * @param string|null $fromTz
+     *
+     * @return string
      */
-    function updateLanguage(int $language_id, array $data): array
+    function tz_format(Carbon|DateTimeInterface|int|string $value, string $format = 'Y-m-d H:i:s', ?string $tz = null, ?string $fromTz = null): string
     {
-        return Language::update($language_id, $data);
+        $from = $fromTz ?: (string)config('app.timezone', 'UTC');
+        $to = $tz ?: client_timezone();
+
+        if ($value instanceof DateTimeInterface) {
+            $dt = Carbon::instance(Carbon::parse($value)->setTimezone($from));
+        } elseif (is_int($value) || (is_string($value) && ctype_digit($value))) {
+            $dt = Carbon::createFromTimestamp((int)$value, $from);
+        } else {
+            $dt = Carbon::parse((string)$value, $from);
+        }
+
+        return $dt->setTimezone($to)->format($format);
     }
 }
 
-if (!function_exists('deleteLanguage')) {
+if (!function_exists('tz_carbon')) {
     /**
-     * delete language
+     * Convert an input into a Carbon instance adjusted to the client's timezone.
      *
-     * @param int $language_id
+     * @param Carbon|DateTimeInterface|int|string $value
+     * @param string|null $tz
+     * @param string|null $fromTz
      *
-     * @return array
+     * @return Carbon
      */
-    function deleteLanguage(int $language_id): array
+    function tz_carbon(Carbon|DateTimeInterface|int|string $value, ?string $tz = null, ?string $fromTz = null): Carbon
     {
-        return Language::delete($language_id);
-    }
-}
+        $from = $fromTz ?: (string)config('app.timezone', 'UTC');
+        $to = $tz ?: client_timezone();
 
-if (!function_exists('addLanguageScript')) {
-    /**
-     * add language script
-     *
-     * @return void
-     */
-    function addLanguageScript(): void
-    {
-        DomiScript('assets/vendor/language/js/laravel-language.js');
+        if ($value instanceof DateTimeInterface) {
+            $dt = Carbon::instance(Carbon::parse($value)->setTimezone($from));
+        } elseif (is_int($value) || (is_string($value) && ctype_digit($value))) {
+            $dt = Carbon::createFromTimestamp((int)$value, $from);
+        } else {
+            $dt = Carbon::parse((string)$value, $from);
+        }
+
+        return $dt->setTimezone($to);
     }
 }
