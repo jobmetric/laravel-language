@@ -5,20 +5,19 @@ namespace JobMetric\Language\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use JobMetric\Language\Events\SetLocaleEvent;
-use JobMetric\Language\Models\Language;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Sets the application locale for the current request before controllers run.
  *
- * Behavior:
- * - Skips locale mutation on the 'language.set' route.
- * - Resolves locale by priority:
- *     1) 'Language' header (normalized/validated against active languages)
- *     2) session('language') if session exists and value is valid
- *     3) 'Accept-Language' header (q-weighted, RFC-style negotiation)
- *     4) config('app.locale') as fallback (normalized to an active locale when possible)
- * - Dispatches SetLocaleEvent after the locale is determined.
+ * Priority:
+ * 1) 'Accept-Language' header (q-weighted, cleaned)
+ * 2) session('language') (if present)
+ * 3) config('app.locale') (fallback)
+ *
+ * Notes:
+ * - Skips locale mutation on route named 'language.set'.
+ * - Normalizes resolved tag to base form (e.g., 'fa-IR' → 'fa', 'en_US' → 'en').
  */
 class SetLanguageMiddleware
 {
@@ -35,36 +34,27 @@ class SetLanguageMiddleware
         $route = $request->route();
 
         if (!($route && $route->getName() === 'language.set')) {
-            $activeLocales = $this->activeLocales();
             $locale = null;
 
-            // 1) Header: Language
-            $headerLocale = $request->header('Language');
-            if ($headerLocale) {
-                $locale = $this->chooseBestLocale($headerLocale, $activeLocales);
+            // 1) Accept-Language (q-weighted, cleaned)
+            $accept = $request->header('Accept-Language');
+            if ($accept) {
+                $locale = $this->negotiateFromAcceptLanguage($accept);
             }
 
-            // 2) Session: language
+            // 2) Session fallback
             if (!$locale && $request->hasSession() && $request->session()->has('language')) {
-                $sessionLocale = (string)$request->session()->get('language');
-                $locale = $this->chooseBestLocale($sessionLocale, $activeLocales) ?? $sessionLocale;
+                $locale = (string)$request->session()->get('language');
             }
 
-            // 3) Header: Accept-Language (q-weighted)
+            // 3) Config fallback
             if (!$locale) {
-                $accept = $request->header('Accept-Language');
-                if ($accept) {
-                    $locale = $this->negotiateFromAcceptLanguage($accept, $activeLocales);
-                }
+                $locale = (string)config('app.locale');
             }
 
-            // 4) Fallback: config('app.locale') normalized if possible
-            if (!$locale) {
-                $fallback = (string)config('app.locale');
-                $locale = $this->chooseBestLocale($fallback, $activeLocales) ?? $fallback;
-            }
+            $locale = $this->baseLocale((string)$locale);
 
-            app()->setLocale((string)$locale);
+            app()->setLocale($locale);
         }
 
         event(new SetLocaleEvent());
@@ -73,75 +63,26 @@ class SetLanguageMiddleware
     }
 
     /**
-     * Choose the best matching active locale for a given input.
+     * Extract a best-effort locale from the Accept-Language header.
      *
-     * Matching strategy:
-     * - Exact case-insensitive match (e.g., 'fa-IR' → 'fa-IR' if present).
-     * - Base language fallback (e.g., 'fa-IR' → 'fa' if only base exists).
-     * - Regional fallback when only regioned variants exist (e.g., 'pt' → first 'pt-*').
-     *
-     * @param string $input
-     * @param array<int,string> $activeLocales
-     *
-     * @return string|null
-     */
-    private function chooseBestLocale(string $input, array $activeLocales): ?string
-    {
-        $input = trim($input);
-        if ($input === '') {
-            return null;
-        }
-
-        $normalized = str_replace('_', '-', strtolower($input));
-
-        // Build a lowercase → original map for O(1) lookup
-        $map = [];
-        foreach ($activeLocales as $loc) {
-            $map[strtolower($loc)] = $loc;
-        }
-
-        // 1) Exact case-insensitive match
-        if (isset($map[$normalized])) {
-            return $map[$normalized];
-        }
-
-        // 2) Base language fallback (fa-IR => fa)
-        $base = explode('-', $normalized, 2)[0] ?? $normalized;
-        if (isset($map[$base])) {
-            return $map[$base];
-        }
-
-        // 3) Regional fallback when only regioned variants exist (input 'fa' and only 'fa-IR' exists)
-        foreach ($map as $low => $orig) {
-            if (str_starts_with($low, $base . '-')) {
-                return $orig;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Negotiate locale from an Accept-Language header using q-weights against active locales.
-     *
-     * Parsing rules:
-     * - Splits by comma, supports q-values (e.g., "fa-IR,fa;q=0.9,en-US;q=0.7,en;q=0.5").
+     * Behavior:
+     * - Parses comma-separated tags with optional q-values.
      * - Ignores wildcard '*'.
-     * - Tries each candidate (best q first) via chooseBestLocale.
+     * - Sorts by q (descending) and returns the first base-locale match.
+     * - Cleans underscores and extra spaces; supports forms like "fa-IR, en_US;q=0.9".
      *
      * @param string $header
-     * @param array<int,string> $activeLocales
      *
      * @return string|null
      */
-    private function negotiateFromAcceptLanguage(string $header, array $activeLocales): ?string
+    private function negotiateFromAcceptLanguage(string $header): ?string
     {
         $candidates = $this->parseAcceptLanguage($header);
 
-        foreach ($candidates as $locale) {
-            $match = $this->chooseBestLocale($locale, $activeLocales);
-            if ($match) {
-                return $match;
+        foreach ($candidates as $tag) {
+            $base = $this->baseLocale($tag);
+            if ($base !== '') {
+                return $base;
             }
         }
 
@@ -151,17 +92,25 @@ class SetLanguageMiddleware
     /**
      * Parse an Accept-Language header into an ordered list of locale tags by descending q.
      *
+     * Rules:
+     * - Splits by comma, trims spaces.
+     * - Accepts tags with optional q-values; ignores wildcard '*'.
+     * - Normalizes underscores to dashes (e.g., 'en_US' → 'en-US').
+     * - Drops candidates with q <= 0.0 (unacceptable).
+     * - Stable sort: higher q first; for equal q, preserve original order.
+     *
      * @param string $header
      *
      * @return array<int,string>
      */
     private function parseAcceptLanguage(string $header): array
     {
-        $items = array_map('trim', explode(',', $header));
+        $items  = array_map('trim', explode(',', $header));
         $parsed = [];
+        $idx    = 0;
 
         foreach ($items as $item) {
-            // Pattern: lang[-REGION][;q=0.8]
+            // Pattern: lang[-REGION][_REGION][;q=0.8]
             if (!preg_match('/^\s*([a-zA-Z0-9_-]+)\s*(?:;\s*q\s*=\s*(\d(?:\.\d+)?))?\s*$/', $item, $m)) {
                 continue;
             }
@@ -171,13 +120,25 @@ class SetLanguageMiddleware
                 continue;
             }
 
-            $q = isset($m[2]) ? (float)$m[2] : 1.0;
-            $parsed[] = ['tag' => $tag, 'q' => $q];
+            // Normalize underscores early to keep consistency
+            $tag = str_replace('_', '-', $tag);
+
+            $q = isset($m[2]) ? (float) $m[2] : 1.0;
+            if ($q <= 0.0) {
+                continue;
+            }
+
+            // Keep original position for stable sorting on equal q
+            $parsed[] = ['tag' => $tag, 'q' => $q, 'i' => $idx++];
         }
 
         usort($parsed, static function ($a, $b) {
             if ($a['q'] === $b['q']) {
-                return 0;
+                if ($a['i'] === $b['i']) {
+                    return 0;
+                }
+
+                return ($a['i'] < $b['i']) ? -1 : 1;
             }
 
             return ($a['q'] > $b['q']) ? -1 : 1;
@@ -187,45 +148,23 @@ class SetLanguageMiddleware
     }
 
     /**
-     * Load active locales from the languages table (status=true). Optionally cache per config.
+     * Reduce a locale tag to its base language to align with translation directories.
+     * Examples: 'fa-IR' → 'fa', 'en_US' → 'en', 'ar' → 'ar'.
      *
-     * Caching:
-     * - language.cache_time (minutes): 0 => no cache, null => forever, N>0 => cache N minutes.
+     * @param string $tag
      *
-     * @return array<int,string>
+     * @return string
      */
-    private function activeLocales(): array
+    private function baseLocale(string $tag): string
     {
-        $minutes = config('language.cache_time', 0);
-        $key = 'language.active_locales';
-
-        // No cache
-        if ($minutes === 0) {
-            return $this->queryActiveLocales();
+        $tag = trim($tag);
+        if ($tag === '') {
+            return '';
         }
 
-        // Forever
-        if ($minutes === null) {
-            return cache()->rememberForever($key, fn() => $this->queryActiveLocales());
-        }
+        $norm = str_replace('_', '-', $tag);
+        $parts = explode('-', $norm, 2);
 
-        // Minutes
-        $ttl = now()->addMinutes((int)$minutes);
-
-        return cache()->remember($key, $ttl, fn() => $this->queryActiveLocales());
-    }
-
-    /**
-     * Query the database for active locales (status=true).
-     *
-     * @return array<int,string>
-     */
-    private function queryActiveLocales(): array
-    {
-        return Language::active()
-            ->pluck('locale')
-            ->filter()
-            ->values()
-            ->all();
+        return strtolower($parts[0] ?? $norm);
     }
 }
