@@ -105,9 +105,9 @@ class SetLanguageMiddleware
      */
     private function parseAcceptLanguage(string $header): array
     {
-        $items  = array_map('trim', explode(',', $header));
+        $items = array_map('trim', explode(',', $header));
         $parsed = [];
-        $idx    = 0;
+        $idx = 0;
 
         foreach ($items as $item) {
             // Pattern: lang[-REGION][_REGION][;q=0.8]
@@ -123,7 +123,7 @@ class SetLanguageMiddleware
             // Normalize underscores early to keep consistency
             $tag = str_replace('_', '-', $tag);
 
-            $q = isset($m[2]) ? (float) $m[2] : 1.0;
+            $q = isset($m[2]) ? (float)$m[2] : 1.0;
             if ($q <= 0.0) {
                 continue;
             }
