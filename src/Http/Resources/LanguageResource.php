@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string $locale                IETF/BCP47-like code (e.g. fa, fa-IR, en, en-GB)
  * @property string $direction             'ltr' or 'rtl'
  * @property string $calendar              e.g. 'gregorian','jalali','hijri','hebrew','buddhist','coptic','ethiopian','chinese'
- * @property int $first_day_of_week        0..6 where 0=Saturday, 1=Sunday, ..., 6=Friday
+ * @property int $first_day_of_week        0..6 where 0=Sunday, 1=Monday, ..., 6=Saturday
  * @property bool $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -58,15 +58,15 @@ class LanguageResource extends JsonResource
         if ($firstDayTrans === 'language::base.weekdays.' . $weekdayKey) {
             // Fallback map if translation key not provided
             $fallbackWeekdays = [
-                0 => 'Saturday',
-                1 => 'Sunday',
-                2 => 'Monday',
-                3 => 'Tuesday',
-                4 => 'Wednesday',
-                5 => 'Thursday',
-                6 => 'Friday',
+                0 => 'Sunday',
+                1 => 'Monday',
+                2 => 'Tuesday',
+                3 => 'Wednesday',
+                4 => 'Thursday',
+                5 => 'Friday',
+                6 => 'Saturday',
             ];
-            $firstDayTrans = $fallbackWeekdays[$this->first_day_of_week] ?? 'Saturday';
+            $firstDayTrans = $fallbackWeekdays[$this->first_day_of_week] ?? 'Sunday';
         }
 
         return [

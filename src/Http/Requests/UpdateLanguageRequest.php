@@ -38,7 +38,10 @@ class UpdateLanguageRequest extends FormRequest
         return [
             'name' => 'string',
             'flag' => 'string|nullable',
-            'locale' => ['string', new CheckLocaleRule($language_id)],
+            'locale' => [
+                'string',
+                new CheckLocaleRule($language_id)
+            ],
             'direction' => 'string',
             'calendar' => 'string|in:' . implode(',', CalendarTypeEnum::values()),
             'status' => 'boolean',
