@@ -5,9 +5,9 @@ namespace JobMetric\Language;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use JobMetric\Language\Events\Language\LanguageStoredEvent;
 use JobMetric\Language\Events\Language\LanguageDeletedEvent;
 use JobMetric\Language\Events\Language\LanguageDeletingEvent;
+use JobMetric\Language\Events\Language\LanguageStoredEvent;
 use JobMetric\Language\Events\Language\LanguageUpdatedEvent;
 use JobMetric\Language\Exceptions\LanguageDataNotExist;
 use JobMetric\Language\Http\Requests\StoreLanguageRequest;
@@ -42,12 +42,23 @@ class Language
             'updated_at',
         ];
 
-        return QueryBuilder::for(LanguageModel::class)
+        $qb = QueryBuilder::for(LanguageModel::class)
             ->allowedFields($fields)
             ->allowedSorts($fields)
             ->allowedFilters($fields)
-            ->defaultSort('-id')
-            ->where($filter);
+            ->defaultSort('-id');
+
+        // Apply only whitelisted, non-null filters
+        $whitelisted = array_intersect_key(
+            array_filter($filter, static fn($v) => $v !== null),
+            array_flip($fields)
+        );
+
+        if ($whitelisted !== []) {
+            $qb->where($whitelisted);
+        }
+
+        return $qb;
     }
 
     /**
@@ -120,7 +131,9 @@ class Language
 
         return DB::transaction(function () use ($language_id, $validated) {
             /** @var LanguageModel $language */
-            $language = LanguageModel::findOrFail($language_id)->fill($validated)->save();
+            $language = LanguageModel::findOrFail($language_id);
+            $language->fill($validated);
+            $language->save();
 
             event(new LanguageUpdatedEvent($language, $validated));
 
@@ -162,25 +175,36 @@ class Language
      */
     public function addLanguageData(string $locale): void
     {
-        $languages = require realpath(__DIR__ . '/../data/languages.php');
+        $dataPath = __DIR__ . '/../data/languages.php';
+
+        if (!is_file($dataPath)) {
+            throw new RuntimeException("Languages data file not found at: {$dataPath}");
+        }
+
+        /** @var array<string, array<string, mixed>> $languages */
+        $languages = require $dataPath;
 
         if (!array_key_exists($locale, $languages)) {
             throw new LanguageDataNotExist($locale);
         }
 
-        LanguageModel::create($languages[$locale]);
+        // Idempotent create (avoid duplicate key on 'locale')
+        LanguageModel::updateOrCreate(
+            ['locale' => $locale],
+            $languages[$locale]
+        );
     }
 
     /**
      * Get a list of available flag images with their formatted names.
      *
-     * @return array<int, array{value: string, name: string}>
-     * @throws Throwable
+     * @return array<int, array{value: string, name: string, url: string}>
      */
     public function getFlags(): array
     {
         return cache()->remember('language.flags.list.v1', now()->addDay(), function () {
-            $path = public_path('assets/vendor/language/flags');
+            $relative = 'assets/vendor/language/flags';
+            $path = public_path($relative);
 
             if (!is_dir($path)) {
                 throw new RuntimeException("The directory {$path} does not exist. Please ensure the flags directory is present.");
@@ -193,12 +217,14 @@ class Language
                 if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
                     $nameWithoutExtension = pathinfo($file, PATHINFO_FILENAME);
 
-                    // Directly format the name without separate method
-                    $formattedName = ucwords(trim(str_replace(['-', '_'], ' ', $nameWithoutExtension)));
+                    $formattedName = ucwords(
+                        trim(str_replace(['-', '_'], ' ', $nameWithoutExtension))
+                    );
 
                     $flags[] = [
                         'value' => $file,
                         'name' => $formattedName,
+                        'url' => asset($relative . '/' . $file),
                     ];
                 }
             }
