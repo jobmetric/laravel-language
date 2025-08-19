@@ -85,18 +85,20 @@ return new class extends Migration {
              * - "ethiopian"  -> first day of week 0 (Sunday)
              * - "chinese"    -> first day of week 0 (Sunday)
              *
+             * Defaults to "gregorian".
+             *
              * This column is a string to preserve forward compatibility with
              * additional calendar systems. For canonical constants, see:
              * @see CalendarTypeEnum
              */
 
-            $table->unsignedTinyInteger('first_day_of_week')->default(1);
+            $table->unsignedTinyInteger('first_day_of_week')->default(0);
             /**
-             * First day of the week used by the application calendar UI.
+             * First day of week used by the UI.
              *
              * Range: 0..6
-             * Mapping in this schema: 0=Sunday, 1=Monday, ..., 6=Saturday.
-             * Defaults to 0 (Saturday). Adjust in seed/config to match locale norms.
+             * Mapping: 0=Sunday, 1=Monday, ..., 6=Saturday.
+             * Default: 1 (Sunday).
              */
 
             $table->boolean('status')->default(true)->index();
