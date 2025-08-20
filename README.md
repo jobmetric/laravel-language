@@ -15,137 +15,246 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-# Language for laravel
+# Laravel Language
 
-It is a standard package for managing different system languages in Laravel.
+A clean, framework-native way to manage application languages with first-class validation rules, events, and a fluent query API.
 
-## Install via composer
+## Table of Contents
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration & Migrations](#configuration--migrations)
+- [Data Model](#data-model)
+- [Calendars Enum](#calendars-enum)
+- [Validation Rules](#validation-rules)
+- [Requests (FormRequest)](#requests-formrequest)
+- [Service / Facade API](#service--facade-api)
+- [Querying & Filters](#querying--filters)
+- [Events](#events)
+- [API Resources (Optional)](#api-resources-optional)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
-Run the following command to pull in the latest version:
+---
+
+## Features
+- **Language entity** with:  
+  `name`, `flag`, `locale` (two-letter like `fa`, `en`), `direction` (`ltr`/`rtl`), `calendar`, `first_day_of_week` (0..6), `status`.
+- **Calendar awareness** via enum (Gregorian, Jalali, Hijri, Hebrew, Buddhist, Coptic, Ethiopian, Chinese).
+- **Validation rules**: `CheckLocaleRule`, `LanguageExistRule`.
+- **Service/Facade** for CRUD and fluent querying (Spatie QueryBuilder under the hood).
+- **Domain events** on store/update/delete.
+- **API-ready** via `LanguageResource` (optional).
+
+> Note: The package no longer uses formatting fields like `time_format`, `date_format_short`, or `date_format_long`.
+
+---
+
+## Requirements
+- PHP **8.2+**
+- Laravel **10/11/12**
+- A supported database (MySQL/MariaDB, etc.)
+
+---
+
+## Installation
 ```bash
 composer require jobmetric/laravel-language
 ```
 
-## Documentation
-
-This package evolves every day under continuous development and integrates a diverse set of features. It's a must-have asset for Laravel enthusiasts and provides a seamless way to align your projects with basic language models.
-
-To use the services of this package, please follow the instructions below.
-
->#### Before doing anything, you must migrate after installing the package by composer.
-
+Run migrations:
 ```bash
 php artisan migrate
 ```
 
-### Usage
+---
 
-#### Store language
-
-You can store a new language by using the following code:
-
-```php
-use JobMetric\Language\Facades\Language
-
-$language = Language::store([
-    'name' => 'English',
-    'flag' => 'us',
-    'locale' => 'en',
-    'direction' => 'ltr',
-    'status' => true
-]);
+## Configuration & Migrations
+- The package ships with migrations for the `languages` table.
+- (Optional) If a config file is provided, you may publish it:
+```bash
+php artisan vendor:publish --tag=language-config
 ```
 
-#### Update language
+Seeders/Factories (optional):
+- You can seed an initial default language (e.g., Persian `fa`) in your application’s seeders/factories.
 
-You can update an existing language by using the following code:
+---
 
+## Data Model
+**Table:** `languages`
+
+Recommended columns:
+- `id` *(int, PK)*
+- `name` *(string)*
+- `flag` *(string|null)* — e.g., `ir`, `us`
+- `locale` *(string)* — **two letters** like `fa`, `en` (not `fa-IR`)
+- `direction` *(enum)* — `ltr` or `rtl`
+- `calendar` *(enum)* — see [Calendars Enum](#calendars-enum)
+- `first_day_of_week` *(tinyint 0..6)* — `0=Saturday, 1=Sunday, ..., 6=Friday`
+- `status` *(bool)*
+- Timestamps
+
+---
+
+## Calendars Enum
 ```php
-use JobMetric\Language\Facades\Language
-
-$language = Language::update($language->id, [
-    'name' => 'English',
-    'flag' => 'us',
-    'locale' => 'en',
-    'direction' => 'ltr',
-    'status' => true
-]);
+enum CalendarTypeEnum: string {
+    case GREGORIAN = 'gregorian';
+    case JALALI    = 'jalali';
+    case HIJRI     = 'hijri';
+    case HEBREW    = 'hebrew';
+    case BUDDHIST  = 'buddhist';
+    case COPTIC    = 'coptic';
+    case ETHIOPIAN = 'ethiopian';
+    case CHINESE   = 'chinese';
+}
 ```
 
-#### Delete language
+---
 
-You can delete an existing language by using the following code:
+## Validation Rules
 
-```php
-use JobMetric\Language\Facades\Language
-
-$language = Language::delete($language->id);
-```
-
-#### Get all languages
-
-You can get all languages by using the following code:
-
-```php
-use JobMetric\Language\Facades\Language
-
-$languages = Language::all();
-```
-
-#### Get language by id
-
-You can get a language by id by using the following code:
-
-```php
-use JobMetric\Language\Facades\Language
-
-$language = Language::all([
-    'id' => $language->id
-]);
-```
-
-#### Get language by locale
-
-You can get a language by locale by using the following code:
-
-```php
-use JobMetric\Language\Facades\Language
-
-$language = Language::all([
-    'locale' => 'en'
-]);
-```
-
-## Rules
-
-This package contains several rules for which you can write a listener as follows
-
-- `CheckLocaleRule` - This rule checks if the locale exists in the language table.
-
+### `CheckLocaleRule`
+Validates that a provided `locale` conforms to your system’s accepted locales.
 ```php
 use JobMetric\Language\Rules\CheckLocaleRule;
 
 $request->validate([
-    'locale' => ['required', new CheckLocaleRule]
+    'locale' => ['required', 'string', new CheckLocaleRule],
 ]);
 ```
 
-- `LanguageExistsRule` - This rule checks if the language exists in the language table.
+### `LanguageExistRule`
+Validates that a language record exists (commonly used for `language_id`).
+```php
+use JobMetric\Language\Rules\LanguageExistRule;
+
+$request->validate([
+    'language_id' => ['required', new LanguageExistRule('fa')], // optionally scope by locale
+]);
+```
+
+---
+
+## Requests (FormRequest)
+Example for creating a language:
+```php
+use Illuminate\Foundation\Http\FormRequest;
+use JobMetric\Language\Enums\CalendarTypeEnum;
+use JobMetric\Language\Rules\CheckLocaleRule;
+
+class StoreLanguageRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /** @return array<string, mixed> */
+    public function rules(): array
+    {
+        return [
+            'name'              => 'required|string',
+            'flag'              => 'nullable|string',
+            'locale'            => ['required','string', new CheckLocaleRule],
+            'direction'         => 'required|string|in:ltr,rtl',
+            'calendar'          => 'required|string|in:' . implode(',', CalendarTypeEnum::values()),
+            'first_day_of_week' => 'required|integer|min:0|max:6',
+            'status'            => 'required|boolean',
+        ];
+    }
+}
+```
+
+---
+
+## Service / Facade API
+Facade: `JobMetric\Language\Facades\Language`
+
+### Store
+```php
+$language = Language::store([
+    'name'              => 'Persian',
+    'flag'              => 'ir',
+    'locale'            => 'fa',
+    'direction'         => 'rtl',
+    'calendar'          => 'jalali',
+    'first_day_of_week' => 0,
+    'status'            => true,
+]);
+```
+
+### Update
+```php
+$language = Language::update($id, [
+    'name'   => 'فارسی',
+    'status' => true,
+]);
+```
+
+### Delete
+```php
+Language::delete($id);
+```
+
+### Get / List
+```php
+// All languages
+$languages = Language::all();
+
+// Filtered, sorted, field-limited
+$languages = Language::all([
+    'status' => true,
+]);
+```
+
+---
+
+## Querying & Filters
+If you expose a `query(array $filter = [])` method returning a `QueryBuilder`, you can compose queries fluently:
+
+```php
+$result = Language::query([
+    'status' => true,
+])->paginate(15);
+```
+
+---
 
 ## Events
+Package emits domain events during lifecycle changes:
+- `LanguageAddEvent` — after create
+- `LanguageUpdatedEvent` — after update
+- `LanguageDeletingEvent` — before delete
+- `LanguageDeletedEvent` — after delete
 
-This package contains several events for which you can write a listener as follows
+---
 
-| Event                 | Description                                       |
-|-----------------------|---------------------------------------------------|
-| `LanguageStoredEvent` | This event is called after storing the language.  |
-| `LanguageUpdateEvent` | This event is called after updating the language. |
-| `LanguageDeleteEvent` | This event is called after delete the language.   |
+## API Resources (Optional)
+```php
+return LanguageResource::collection($languages);
+// or
+return LanguageResource::make($language);
+```
 
+---
+
+## Testing
+Recommended coverage:
+- **Rules:** `CheckLocaleRule`, `LanguageExistRule`
+- **Service/Facade:** store/update/delete, query filters/sorts/fields
+- **Events:** assert dispatched
+- **Requests:** validation scenarios
+
+---
 
 ## Contributing
 
 Thank you for considering contributing to the Laravel Language! The contribution guide can be found in the [CONTRIBUTING.md](https://github.com/jobmetric/laravel-language/blob/master/CONTRIBUTING.md).
+
+---
 
 ## License
 
