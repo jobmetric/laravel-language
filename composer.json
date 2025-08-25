@@ -22,7 +22,7 @@
     "require": {
         "php": ">=8.2",
         "laravel/framework": ">=9.19",
-        "jobmetric/laravel-package-core": "^1.25",
+        "jobmetric/laravel-package-core": "^1.26",
         "spatie/laravel-query-builder": "^6.3",
         "jobmetric/multi-calendar": "^1.2"
     },
