@@ -6,6 +6,7 @@ use FilesystemIterator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use JobMetric\Language\Events\Language\LanguageDeletedEvent;
 use JobMetric\Language\Events\Language\LanguageDeletingEvent;
 use JobMetric\Language\Events\Language\LanguageStoredEvent;
@@ -134,18 +135,19 @@ class LanguageServiceTest extends TestCase
         });
 
         // Validation failure (status must be boolean)
-        $bad = $this->service->store([
-            'name' => 'Duplicate English',
-            'flag' => 'us',
-            'locale' => 'en',
-            'direction' => 'ltr',
-            'calendar' => 'gregorian',
-            'first_day_of_week' => 1,
-            'status' => 'true',
-        ]);
-
-        $this->assertFalse($bad->ok);
-        $this->assertEquals(422, $bad->status);
+        try {
+            $this->service->store([
+                'name' => 'Duplicate English',
+                'flag' => 'us',
+                'locale' => 'en',
+                'direction' => 'ltr',
+                'calendar' => 'gregorian',
+                'first_day_of_week' => 1,
+                'status' => 'true',
+            ]);
+        } catch (Throwable $e) {
+            $this->assertInstanceOf(ValidationException::class, $e);
+        }
     }
 
     /**

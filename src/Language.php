@@ -98,10 +98,6 @@ class Language
     {
         $validated = dto($input, StoreLanguageRequest::class);
 
-        if ($validated instanceof Response) {
-            return $validated;
-        }
-
         return DB::transaction(function () use ($validated) {
             $language = LanguageModel::create($validated);
 
@@ -118,16 +114,13 @@ class Language
      * @param array<string, mixed> $input The updated data for the language.
      *
      * @return Response
+     * @throws Throwable
      */
     public function update(int $language_id, array $input): Response
     {
         $validated = dto($input, UpdateLanguageRequest::class, [
             'language_id' => $language_id,
         ]);
-
-        if ($validated instanceof Response) {
-            return $validated;
-        }
 
         return DB::transaction(function () use ($language_id, $validated) {
             /** @var LanguageModel $language */
