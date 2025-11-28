@@ -2,7 +2,6 @@
 
 namespace JobMetric\Language;
 
-use JobMetric\Language\Facades\Language;
 use JobMetric\PackageCore\Enums\RegisterClassTypeEnum;
 use JobMetric\PackageCore\Exceptions\AssetFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
