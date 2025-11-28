@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \JobMetric\PackageCore\Output\Response delete(int $language_id)
  * @method static void addLanguageData(string $locale)
  * @method static array getFlags()
+ * @method static array getActiveLocales()
  */
 class Language extends Facade
 {

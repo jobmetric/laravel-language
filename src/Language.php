@@ -140,6 +140,7 @@ class Language
      * @param int $language_id The ID of the language to delete.
      *
      * @return Response
+     * @throws Throwable
      */
     public function delete(int $language_id): Response
     {
@@ -226,5 +227,17 @@ class Language
 
             return $flags;
         });
+    }
+
+    /**
+     * Get an array of active locale codes.
+     *
+     * @return array<int, string>
+     */
+    public function getActiveLocales(): array
+    {
+        return $this->all([
+            'status' => true,
+        ])->pluck('locale')->all();
     }
 }
