@@ -24,7 +24,8 @@
         "laravel/framework": ">=9.19",
         "jobmetric/laravel-package-core": "^1.31",
         "spatie/laravel-query-builder": "^6.3",
-        "jobmetric/multi-calendar": "^1.2"
+        "jobmetric/multi-calendar": "^1.2",
+        "jobmetric/laravel-event-system": "^2.7"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
