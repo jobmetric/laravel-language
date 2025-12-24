@@ -70,4 +70,35 @@ return [
         "status" => "Status",
     ],
 
+    "entity_names" => [
+        "language" => "Language",
+    ],
+
+    'events' => [
+        'language_stored' => [
+            'title' => 'Language Stored',
+            'description' => 'This event is triggered when a language is stored.',
+        ],
+
+        'language_updated' => [
+            'title' => 'Language Updated',
+            'description' => 'This event is triggered when a language is updated.',
+        ],
+
+        'language_deleted' => [
+            'title' => 'Language Deleted',
+            'description' => 'This event is triggered when a language is deleted.',
+        ],
+
+        'language_deleting' => [
+            'title' => 'Language Deleting',
+            'description' => 'This event is triggered when a language is being deleted.',
+        ],
+
+        'locale_set' => [
+            'title' => 'Locale Set',
+            'description' => 'This event is triggered when the locale is set.',
+        ],
+    ],
+
 ];
