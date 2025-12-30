@@ -17,245 +17,95 @@
 
 # Laravel Language
 
-A clean, framework-native way to manage application languages with first-class validation rules, events, and a fluent query API.
+**Build Language Management. Simply and Powerfully.**
 
-## Table of Contents
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Configuration & Migrations](#configuration--migrations)
-- [Data Model](#data-model)
-- [Calendars Enum](#calendars-enum)
-- [Validation Rules](#validation-rules)
-- [Requests (FormRequest)](#requests-formrequest)
-- [Service / Facade API](#service--facade-api)
-- [Querying & Filters](#querying--filters)
-- [Events](#events)
-- [API Resources (Optional)](#api-resources-optional)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [License](#license)
+Laravel Language simplifies language management in Laravel applications. Stop creating custom language tables manually and start building multilingual applications with confidence. It provides a clean, framework-native way to manage application languages with first-class validation rules, events, and a fluent query API—perfect for building global applications, e-commerce platforms, and content management systems. This is where powerful language management meets developer-friendly simplicity—giving you complete control over locales, calendars, and text directions without the complexity.
 
----
+## Why Laravel Language?
 
-## Features
-- **Language entity** with:  
-  `name`, `flag`, `locale` (two-letter like `fa`, `en`), `direction` (`ltr`/`rtl`), `calendar`, `first_day_of_week` (0..6), `status`.
-- **Calendar awareness** via enum (Gregorian, Jalali, Hijri, Hebrew, Buddhist, Coptic, Ethiopian, Chinese).
-- **Validation rules**: `CheckLocaleRule`, `LanguageExistRule`.
-- **Service/Facade** for CRUD and fluent querying (Spatie QueryBuilder under the hood).
-- **Domain events** on store/update/delete.
-- **API-ready** via `LanguageResource` (optional).
+### Simple API
 
-> Note: The package no longer uses formatting fields like `time_format`, `date_format_short`, or `date_format_long`.
+Laravel Language provides a clean, intuitive API for managing languages. Store, update, delete, and query languages with simple method calls through the service or facade.
 
----
+### Calendar Awareness
 
-## Requirements
-- PHP **8.2+**
-- Laravel **10/11/12**
-- A supported database (MySQL/MariaDB, etc.)
+Support for multiple calendar systems: Gregorian, Jalali, Hijri, Hebrew, Buddhist, Coptic, Ethiopian, and Chinese. Each language can have its own calendar preference.
 
----
+### Validation Rules
 
-## Installation
+Built-in validation rules: `CheckLocaleRule`, `LanguageExistRule`, and `CheckFutureDateRule` ensure data integrity and validate locale codes and dates based on calendar systems.
+
+### Middleware Support
+
+Built-in middleware for setting language and timezone automatically based on user preferences or request parameters. No manual locale management needed.
+
+## What is Language Management?
+
+Language management is the process of managing multiple languages in your application, including locale settings, text direction (LTR/RTL), calendar systems, and formatting preferences. Traditional approaches often involve:
+
+- Creating custom language tables manually
+- Writing complex queries to filter and sort languages
+- Managing locale settings manually
+- Duplicating code across different parts of the application
+
+Laravel Language solves these challenges by providing:
+
+- **Unified System**: Single table for all language data
+- **Calendar Support**: Multiple calendar systems out of the box
+- **Simple API**: Clean methods for all operations
+- **Event Integration**: Built-in events for extensibility
+- **Query Helpers**: Easy methods for common queries
+
+Consider a global e-commerce platform that needs to support Persian (Jalali calendar, RTL), Arabic (Hijri calendar, RTL), and English (Gregorian calendar, LTR). With Laravel Language, you can manage languages programmatically, set locales automatically through middleware, format dates based on calendar systems, handle text direction per language, and integrate with notification systems through events. The power of language management lies not only in supporting multiple languages but also in making it easy to manage calendars, directions, and formatting throughout your application.
+
+## What Awaits You?
+
+By adopting Laravel Language, you will:
+
+- **Build multilingual applications** - Support multiple languages with different calendars and directions
+- **Simplify language management** - Single API for all language operations
+- **Support multiple calendars** - Gregorian, Jalali, Hijri, and more
+- **Handle RTL/LTR automatically** - Text direction management built-in
+- **Enable automatic locale detection** - Middleware handles locale and timezone
+- **Maintain clean code** - Simple, intuitive API that follows Laravel conventions
+
+## Quick Start
+
+Install Laravel Language via Composer:
+
 ```bash
 composer require jobmetric/laravel-language
 ```
 
-Run migrations:
+Then publish the migration and run it:
+
 ```bash
+php artisan vendor:publish --tag=language-migrations
 php artisan migrate
 ```
 
----
+## Documentation
 
-## Configuration & Migrations
-- The package ships with migrations for the `languages` table.
-- (Optional) If a config file is provided, you may publish it:
-```bash
-php artisan vendor:publish --tag=language-config
-```
+Ready to transform your Laravel applications? Our comprehensive documentation is your gateway to mastering Laravel Language:
 
-Seeders/Factories (optional):
-- You can seed an initial default language (e.g., Persian `fa`) in your application’s seeders/factories.
+**[📚 Read Full Documentation →](https://jobmetric.github.io/packages/laravel-language/)**
 
----
+The documentation includes:
 
-## Data Model
-**Table:** `languages`
-
-Recommended columns:
-- `id` *(int, PK)*
-- `name` *(string)*
-- `flag` *(string|null)* — e.g., `ir`, `us`
-- `locale` *(string)* — **two letters** like `fa`, `en` (not `fa-IR`)
-- `direction` *(enum)* — `ltr` or `rtl`
-- `calendar` *(enum)* — see [Calendars Enum](#calendars-enum)
-- `first_day_of_week` *(tinyint 0..6)* — `0=Saturday, 1=Sunday, ..., 6=Friday`
-- `status` *(bool)*
-- Timestamps
-
----
-
-## Calendars Enum
-```php
-enum CalendarTypeEnum: string {
-    case GREGORIAN = 'gregorian';
-    case JALALI    = 'jalali';
-    case HIJRI     = 'hijri';
-    case HEBREW    = 'hebrew';
-    case BUDDHIST  = 'buddhist';
-    case COPTIC    = 'coptic';
-    case ETHIOPIAN = 'ethiopian';
-    case CHINESE   = 'chinese';
-}
-```
-
----
-
-## Validation Rules
-
-### `CheckLocaleRule`
-Validates that a provided `locale` conforms to your system’s accepted locales.
-```php
-use JobMetric\Language\Rules\CheckLocaleRule;
-
-$request->validate([
-    'locale' => ['required', 'string', new CheckLocaleRule],
-]);
-```
-
-### `LanguageExistRule`
-Validates that a language record exists (commonly used for `language_id`).
-```php
-use JobMetric\Language\Rules\LanguageExistRule;
-
-$request->validate([
-    'language_id' => ['required', new LanguageExistRule('fa')], // optionally scope by locale
-]);
-```
-
----
-
-## Requests (FormRequest)
-Example for creating a language:
-```php
-use Illuminate\Foundation\Http\FormRequest;
-use JobMetric\Language\Enums\CalendarTypeEnum;
-use JobMetric\Language\Rules\CheckLocaleRule;
-
-class StoreLanguageRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /** @return array<string, mixed> */
-    public function rules(): array
-    {
-        return [
-            'name'              => 'required|string',
-            'flag'              => 'nullable|string',
-            'locale'            => ['required','string', new CheckLocaleRule],
-            'direction'         => 'required|string|in:ltr,rtl',
-            'calendar'          => 'required|string|in:' . implode(',', CalendarTypeEnum::values()),
-            'first_day_of_week' => 'required|integer|min:0|max:6',
-            'status'            => 'required|boolean',
-        ];
-    }
-}
-```
-
----
-
-## Service / Facade API
-Facade: `JobMetric\Language\Facades\Language`
-
-### Store
-```php
-$language = Language::store([
-    'name'              => 'Persian',
-    'flag'              => 'ir',
-    'locale'            => 'fa',
-    'direction'         => 'rtl',
-    'calendar'          => 'jalali',
-    'first_day_of_week' => 0,
-    'status'            => true,
-]);
-```
-
-### Update
-```php
-$language = Language::update($id, [
-    'name'   => 'فارسی',
-    'status' => true,
-]);
-```
-
-### Delete
-```php
-Language::delete($id);
-```
-
-### Get / List
-```php
-// All languages
-$languages = Language::all();
-
-// Filtered, sorted, field-limited
-$languages = Language::all([
-    'status' => true,
-]);
-```
-
----
-
-## Querying & Filters
-If you expose a `query(array $filter = [])` method returning a `QueryBuilder`, you can compose queries fluently:
-
-```php
-$result = Language::query([
-    'status' => true,
-])->paginate(15);
-```
-
----
-
-## Events
-Package emits domain events during lifecycle changes:
-- `LanguageAddEvent` — after create
-- `LanguageUpdatedEvent` — after update
-- `LanguageDeletingEvent` — before delete
-- `LanguageDeletedEvent` — after delete
-
----
-
-## API Resources (Optional)
-```php
-return LanguageResource::collection($languages);
-// or
-return LanguageResource::make($language);
-```
-
----
-
-## Testing
-Recommended coverage:
-- **Rules:** `CheckLocaleRule`, `LanguageExistRule`
-- **Service/Facade:** store/update/delete, query filters/sorts/fields
-- **Events:** assert dispatched
-- **Requests:** validation scenarios
-
----
+- **Getting Started** - Quick introduction and installation guide
+- **Language Service** - Core service for CRUD operations
+- **Language Model** - Eloquent model with query scopes
+- **Calendar Type Enum** - Calendar system types
+- **Validation Rules** - Built-in rules for locale and language validation
+- **Middleware** - Automatic locale and timezone setting
+- **Events** - Hook into language lifecycle
+- **Support Classes** - Helper functions for date formatting and timezone
+- **Real-World Examples** - See how it works in practice
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel Language! The contribution guide can be found in the [CONTRIBUTING.md](https://github.com/jobmetric/laravel-language/blob/master/CONTRIBUTING.md).
-
----
+Thank you for participating in `laravel-language`. A contribution guide can be found [here](CONTRIBUTING.md).
 
 ## License
 
-The MIT License (MIT). Please see [License File](https://github.com/jobmetric/laravel-language/blob/master/LICENCE.md) for more information.
+The `laravel-language` is open-sourced software licensed under the MIT license. See [License File](LICENCE.md) for more information.
