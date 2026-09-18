@@ -44,6 +44,7 @@ class UpdateLanguageRequest extends FormRequest
             ],
             'direction' => 'string',
             'calendar' => 'string|in:' . implode(',', CalendarTypeEnum::values()),
+            'first_day_of_week' => 'sometimes|integer|between:0,6',
             'status' => 'boolean',
         ];
     }

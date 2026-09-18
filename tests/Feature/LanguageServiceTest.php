@@ -171,6 +171,7 @@ class LanguageServiceTest extends TestCase
 
         $resp = $this->service->update($created->data->id, [
             'name' => 'English Updated',
+            'first_day_of_week' => 4,
             'status' => false,
         ]);
 
@@ -182,6 +183,7 @@ class LanguageServiceTest extends TestCase
         $this->assertDatabaseHas($this->table_name(), [
             'id' => $created->data->id,
             'name' => 'English Updated',
+            'first_day_of_week' => 4,
             'status' => false,
         ]);
 
